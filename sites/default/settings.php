@@ -35,3 +35,7 @@ if (function_exists('drupal_fast_404')) {
 if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'local.settings.php')) {
   require_once __DIR__ . DIRECTORY_SEPARATOR . 'local.settings.php';
 }
+$conf['cache_backends'][] = 'sites/all/modules/contrib/d8cache/d8cache-ac.cache.inc';
+$conf['cache_class_cache_views_data'] = 'D8CacheAttachmentsCollector';
+$conf['cache_class_cache_block'] = 'D8CacheAttachmentsCollector';
+$conf['cache_class_cache_page'] = 'D8Cache';
