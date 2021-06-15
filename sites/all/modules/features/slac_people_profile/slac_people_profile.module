@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * Implements hook_init().
+ */
+function slac_people_profile_init() {
+  $manager_username = variable_get('slac_site_owner', '');
+  if (empty($manager_username) && user_is_logged_in()) {
+    drupal_set_message(t('Manager is not set for this site.'), 'error');
+  }
+}
+
+/**
+ * Implements hook_views_pre_view().
+ */
+function slac_people_profile_views_pre_view($view, $display_id, $args) {
+  if ($view->name != 'profile_user_elements') {
+    return;
+  }
+
+  $manager_username = variable_get('slac_site_owner', '');
+  if (empty($manager_username)) {
+    return;
+  }
+  $account = user_load_by_name($manager_username);
+
+  foreach (array('bio', 'contact', 'social_media') as $profile_type_name) {
+    $profile = profile2_load_by_user($account, $profile_type_name);
+    if (empty($profile)) {
+      $message_shown = &drupal_static(__FUNCTION__, FALSE);
+      if (!$message_shown) {
+        global $user;
+        $profile_type = profile2_type_load($profile_type_name);
+        drupal_set_message(t('Please complete @type profile so this page will reflect your personal details. !link', array(
+          '@type' => $profile_type->label,
+          '!link' => l('Complete link.', 'user/' . $user->uid . '/profile-' . $profile_type_name . '/edit', array('query' => array('destination' => current_path()))),
+        )));
+        $message_shown = TRUE;
+      }
+      return;
+    }
+  }
+
+  $view->exposed_input['uid'] = $manager_username;
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function slac_people_profile_preprocess_field(&$variables) {
+  if($variables['element']['#field_name'] == 'field_prf_bio_pub'
+    || $variables['element']['#field_name'] == 'field_prf_bio_tp') {
+
+    if (!isset($variables['items'])) {
+      return;
+    }
+    $items = $variables['items'];
+    $item_values = array();
+    foreach (element_children($items) as $key) {
+      foreach ($items[$key]['entity']['field_collection_item'] as $field_info) {
+        if (isset($field_info['field_title_and_url'][0])) {
+          $item_values[$key]['link'] = drupal_render($field_info['field_title_and_url'][0]);
+        }
+        if (isset($field_info['field_title_and_url']['#items'][0]['url'])) {
+          $item_values[$key]['url'] = $field_info['field_title_and_url']['#items'][0]['url'];
+        }
+        if (isset($field_info['field_document_type']['#items'][0]['value'])) {
+          $item_values[$key]['doc_type'] = $field_info['field_document_type']['#items'][0]['value'];
+        }
+      }
+    }
+
+    $variables['field_info'] = $item_values;
+  }
+}
+
+/**
+   * Implements hook_form_FORM_ID_alter().
+ */
+function slac_people_profile_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['picture'])) {
+    unset($form['picture']);
+  }
+}

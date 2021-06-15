@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the webauth module
+ */
+
+/**
+ * Implements hook_install().
+ */
+function webauth_install() {
+  //We will store the webauth directory in 'files' - we could do it in private - but will
+  $directory = drupal_realpath(file_default_scheme() . '://webauth');
+  drupal_set_message('Creating directory ' . $directory);
+  if (!is_dir($directory) && !drupal_mkdir($directory, NULL, TRUE)) {
+    drupal_set_message('The webauth directory could not be created.  You must create a webauth folder in your sites directory.');
+  }
+  //The .htaccess is used to tell Apache Webauth is protecting a given
+  //asset.  We collect the bits of this in an array
+  $htaccess = array(
+      'AuthType WebAuth',
+      'require valid-user',
+  );
+  
+  //And now copy over our protected page to that directory
+  copy(drupal_get_path('module', 'webauth') . '/assets/login.php', $directory . '/login.php');
+  //TODO we should check read/write access of that file
+  //Write the .htaccess file to the directory
+  $htaccess_lines = implode("\r\n", $htaccess);
+
+  if (file_put_contents($directory . "/.htaccess", $htaccess_lines)) {
+    drupal_chmod($directory . "/.htaccess", 0444);
+  } else  {
+    drupal_set_message('The .htaccess file could not be written.  You must copy an .htaccess file over to the webauth directory.');
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function webauth_uninstall() {
+  //We should clean up after ourselves
+  $directory = drupal_realpath(file_default_scheme() . '://webauth');
+  if (is_dir($directory)) {
+    if (drupal_unlink($directory . "/.htaccess") && drupal_unlink($directory . "/login.php")) {
+      @drupal_rmdir($directory);
+    }
+  }
+}

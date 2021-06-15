@@ -1,0 +1,271 @@
+.field-slideshow
+  overflow: hidden
+  max-width: 100% !important
+  max-height: 100% !important
+
+.field-slideshow-slide
+  max-width: 100% !important
+  height: auto !important
+  width: auto !important
+  a, img
+    max-width: 100%
+    height: auto !important
+    width: auto !important
+
+
+
+.region-content ul.field-slideshow-pager
+  list-style-type: none
+  padding: 0
+  overflow: hidden
+
+
+
+.jcarousel-clip
+  overflow: hidden
+
+
+.field-slideshow-carousel li
+  opacity: 0.6
+
+.field-slideshow-carousel li.activeSlide
+  opacity: 1
+
+
+.field-slideshow-carousel-wrapper .hidden
+  display: none
+  visibility: hidden
+
+
+.field-slideshow-controls .play
+  display: none
+
+
+.field-name-field-slideshow-btmdesc-slide
+  position: relative
+  width: 100%
+  overflow: hidden
+
+.field-name-field-slideshow-btmdesc-slide
+  .field-slideshow-image
+    img
+      display: block
+      max-width: 100%
+      height: auto
+
+
+  .field-slideshow-pager
+    display: none
+
+
+
+//Bottom text slider
+//---------------------------------------
+
+
+
+.pane-bundle-slideshow-description-bottom
+  margin: 0 -13px
+
+  h2.pane-title
+    display: none
+
+  .field-slideshow-controls
+    a
+      display: block
+      text-indent: -9000px
+      overflow: hidden
+      width: 35px
+      height: 70px
+      position: absolute
+      z-index: 5
+      bottom: 0px
+      color: #fff
+      text-decoration: none
+      &:after
+        @extend .slac-font
+        top: 50%
+        margin-top: -28px
+        left: 50%
+        position: absolute
+        font-size: 45px
+      &:hover
+        text-decoration: none
+      &:focus
+        color: $red
+
+      .no-touch &
+        &:hover
+          color: $red
+
+
+      &.prev
+        left: 0
+        &:after
+          content: '\e609'
+          margin-left: -10px
+
+      &.next
+        right: 0
+        &:after
+          content: '\3d'
+          margin-left: -6px
+
+
+  .field-slideshow-body
+    padding: 0 35px
+    +fontsize-rem(12px)
+    color: #fff
+    background-color: rgba(0,0,0,.3)
+    .no-rgba &
+      +background(image-url("fall_back_3perc.png") repeat 0 0)
+    height: 70px
+    line-height: 70px
+    &:hover
+      a
+        border-bottom: 1px dotted
+        text-decoration: none
+
+    a
+      color: inherit
+  .field-slideshow-description
+    display: inline-block
+    vertical-align: middle
+    line-height: 14px
+
++at-breakpoint($less-than-480)
+  .pane-bundle-slideshow-description-bottom
+    border: 5px solid $bg-col-1
+    margin: auto
+    &:hover
+      .field-slideshow-controls
+        display: block
+
+
+    .field-slideshow-controls
+      display: none
+      a
+        top: 50%
+        background-color: rgba(200, 200, 200, 0.5)
+        .no-rgba &
+          +background(image-url("fall_back_50perc_grey.png") repeat 0 0)
+        +border-radius(10px)
+        z-index: 99
+        margin-top: -40px
+        width: 30px
+        height: 55px
+        &:after
+          margin-top: -29px
+
+        &:hover
+          background-color: rgba(200, 200, 200, 0.7)
+          .no-rgba &
+            +background(image-url("fall_back_70perc_grey.png") repeat 0 0)
+        &.prev
+          left: 20px
+        &.next
+          right: 20px
+
+    .field-slideshow-body
+      position: absolute
+      bottom: 0
+      height: auto
+      width: 100%
+      padding: 0
+      line-height: 20px
+      display: block
+      padding: 10px 16px 10px
+
+
+
+    .field-slideshow-caption
+      a
+        color: #fff
+        text-decoration: none
+        font-size: 17px
+        line-height: normal
+
++at-breakpoint($only-tablet)
+
+  .pane-bundle-slideshow-description-bottom
+    .field-slideshow-body
+
+      +fontsize-rem(12px)
+
++at-breakpoint($small-desktop)
+  .field-name-field-slideshow-btmdesc-slide
+    border: 5px solid #fff
+
+  .pane-bundle-slideshow-description-bottom
+    .field-slideshow-body
+      +fontsize-rem(14px)
+
+    .field-slideshow-description
+      line-height: 20px
+
++at-breakpoint($large-desktop)
+  .pane-bundle-slideshow-description-bottom
+    .field-slideshow-body
+      padding: 20px
+      +fontsize-rem(16px)
+
+
+
+.pane-bundle-slac-mini-slideshow
+  .field-slideshow-controls
+    a
+
+      &:after
+        @extend .slac-font
+        top: 50%
+        margin-top: -28px
+        left: 50%
+        position: absolute
+        font-size: 45px
+
+      &:focus
+        color: $red
+
+      .no-touch &
+        &:hover
+          color: $red
+
+
+      &.prev
+        left: 10px
+        &:after
+          content: '\e609'
+          margin-left: -10px
+
+      &.next
+        right: 10px
+        &:after
+          content: '\3d'
+          margin-left: -6px
+
+
+    a
+      top: 50%
+      background-color: rgba(200, 200, 200, 0.5)
+      .no-rgba &
+        +background(image-url("fall_back_50perc_grey.png") repeat 0 0)
+      +border-radius(10px)
+      z-index: 99
+      margin-top: -30px
+      width: 30px
+      height: 55px
+      display: block
+      text-indent: -9000px
+      overflow: hidden
+      position: absolute
+      z-index: 5
+      bottom: 0px
+      color: #fff
+      &:after
+        margin-top: -29px
+
+      &:hover
+        background-color: rgba(200, 200, 200, 0.7)
+        .no-rgba &
+          +background(image-url("fall_back_70perc_grey.png") repeat 0 0)
+

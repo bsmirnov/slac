@@ -1,0 +1,20 @@
+<?php
+
+/**
+* Implementation of hook_ctools_plugin_directory().
+*/
+function slac_news_archive_ctools_plugin_directory($module, $plugin) {
+  if ($module === 'ctools') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+function slac_news_archive_theme() {
+  return array(
+    'news_type_menu_theme' => array(
+      'variables' => array('content' => NULL),
+      'template' => 'news_type_menu',
+      'path' => drupal_get_path('module', 'slac_news_archive') . '/templates',
+    ),
+  );
+}

@@ -1,0 +1,96 @@
+<?php
+/**
+ * @file
+ * Code for the SLAC Service Catalog feature.
+ */
+
+include_once 'slac_service_catalog.features.inc';
+
+/**
+ * Implements hook_node_view().
+ */
+function slac_service_catalog_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'support_ticket' && $view_mode == 'full') {
+    menu_set_active_item(drupal_get_normal_path("support"));
+  }
+}
+
+/**
+ * Implements hook_ctools_block_content_type_pre_render().
+ *
+ * Set different current path.
+ */
+function slac_service_catalog_ctools_block_content_type_pre_render($subtype, $conf) {
+  $arg0 = arg(0);
+  if ($arg0 != 'support' || $subtype != 'superfish-1') {
+    return;
+  }
+  $current_path = &drupal_static(__FUNCTION__);
+  $current_path = current_path();
+
+  $nid = _slac_service_catalog_get_services_node_nid();
+  menu_set_active_item('node/' . $nid);
+}
+
+/**
+ * Implements hook_ctools_block_content_type_post_render().
+ *
+ * Restore previous path.
+ */
+function slac_service_catalog_ctools_block_content_type_post_render($subtype, $conf) {
+  $current_path = &drupal_static('slac_service_catalog_ctools_block_content_type_pre_render');
+  if (empty($current_path) || $subtype != 'superfish-1') {
+    return;
+  }
+  
+  menu_set_active_item($current_path);
+  $current_path = '';
+}
+
+/**
+ * Preprocess function.
+ */
+function slac_service_catalog_preprocess_taxonomy_term(&$vars) {
+  if($vars['vocabulary_machine_name'] == 'slac_sc_category') {
+    $contextual_links = array(
+      '#type' => 'contextual_links',
+      '#contextual_links' => array(
+        'taxonomy' => array('taxonomy/term', array($vars['tid'])),
+      ),
+    );
+    $vars['title_suffix']['contextual_links'] = $contextual_links;
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function slac_service_catalog_contextual_links_view_alter(&$element, &$items) {
+  if (isset($element['#contextual_links']['taxonomy'][0])) {
+    $taxonomy = $element['#contextual_links']['taxonomy'];
+    if ($taxonomy[0] == 'taxonomy/term' && isset($taxonomy[1][0]) && user_access('administer taxonomy')) {
+      $url = $taxonomy[0] . '/' . $taxonomy[1][0] . '/edit';
+      $element['#links']['edit-term'] = array(
+        'title' => t('Edit term'),
+        'href' => url($url, array('absolute' => TRUE, 'query' => array('destination' => current_path()))),
+      );
+    }
+  }
+}
+
+/**
+ * Get nid of the Services node.
+ */
+function _slac_service_catalog_get_services_node_nid() {
+  $query = new EntityFieldQuery();
+  $service_node = $query
+      ->entityCondition('entity_type', 'node')
+      ->entityCondition('bundle', 'landing_page')
+      ->propertyCondition('title', 'Services')
+      ->range(0, 1)
+      ->execute();
+
+  $service_node = reset($service_node['node']);
+
+  return $service_node->nid;
+}

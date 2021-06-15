@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/media/modules/media_wysiwyg/js/wysiwyg-media.js b/sites/all/modules/contrib/media/modules/media_wysiwyg/js/wysiwyg-media.js
+index ac5bf4d..3a5c534 100644
+--- a/sites/all/modules/contrib/media/modules/media_wysiwyg/js/wysiwyg-media.js
++++ b/sites/all/modules/contrib/media/modules/media_wysiwyg/js/wysiwyg-media.js
+@@ -78,7 +78,7 @@ Drupal.wysiwyg.plugins.media = {
+  * inserting a media element into the WYSIWYG.
+  * Keeps track of the WYSIWYG instance id.
+  */
+-var InsertMedia = function (instance_id) {
++InsertMedia = function (instance_id) {
+   this.instanceId = instance_id;
+   return this;
+ };

@@ -1,0 +1,321 @@
+@function em($target, $context: $base-font-size)
+  @if $target == 0
+    @return 0
+  @return $target / $context + 0em
+
+
+@mixin no-select
+  -webkit-touch-callout: none
+  -webkit-user-select: none
+  -khtml-user-select: none
+  -moz-user-select: none
+  -ms-user-select: none
+  user-select: none
+
+@mixin opacity($trans)
+  filter: alpha(opactiy=($trans * 100))
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$trans * 100})"
+  -moz-opacity: $trans
+  -khtml-opacity: $trans
+  opacity: $trans
+
+
+=placeholder($color)
+  &:focus
+    outline: 0 none
+  &::-webkit-input-placeholder
+    color: $color
+  &:-moz-placeholder
+    color: $color
+  &::-moz-placeholder
+    color: $color
+  &:-ms-input-placeholder
+    color: $color
+  &.placeholder
+    color: $color
+
+
+=clearfix
+  *zoom: 1
+  &:before,
+  &:after
+    content: ""
+    display: table
+  &:after
+    clear: both
+
+
+.clearfix
+  +clearfix
+
+$base-font-size: 16px
+
+@function calculateRem($size)
+  $remSize: $size / $base-font-size
+  @return #{$remSize}rem
+
+@mixin fontsize-rem($size)
+  font-size: $size
+  font-size: calculateRem($size)
+
+
+.slac-font
+  font-family: 'slac'
+  font-weight: normal
+  font-style: normal
+  text-indent: 0
+
+
+.date-and-author
+  color: $grey-5
+  +fontsize-rem(12px)
+  display: block
+  margin-bottom: 7px
+  font-style: italic
+
+
+
+
+
+.basic-format-text
+
+  +fontsize-rem(14px)
+  color: $grey-47
+
+  h2
+    +fontsize-rem(16px)
+    margin-bottom: 10px
+    margin-top: 15px
+  h3
+    +fontsize-rem(14px)
+    font-weight: bold
+
+  p
+    margin-bottom: 15px
+    line-height: 20px
+    img
+      margin: 15px 0
+  ul, ol
+    list-style-type: disc
+    padding-left: 20px
+    margin-bottom: 10px
+    &.links
+      padding-left: 0
+    li
+      line-height: 20px
+      margin-bottom: 5px
+  ol
+    list-style-type: decimal
+.basic-intro-text-format
+  margin-bottom: 15px
+
+///layout assitants
+=inline-block
+  display: inline-block
+
+=block
+  display: block
+
+=float-items($direction:left)
+  float: $direction
+  +inline-block
+
+=bold
+  font-weight: bold
+
+=normal
+  font-weight: normal
+
+=caps
+  text-transform: uppercase
+
+=firstletter
+  text-transform: capitalize
+
+=link($link-color: $h2-color, $link-hover: $red, $underline: no) 
+  text-decoration: none
+  color: $link-color
+  &:link,
+  &:visited 
+    text-decoration: none
+  @if $underline == no 
+    &.active,
+    &:hover,
+    &:focus 
+      color: $link-hover
+  @if $underline == yes 
+    &.active,
+    &:hover,
+    &:focus 
+      text-decoration: underline
+      color: $link-hover
+
+=internal-link-color
+  .page-basic-io &
+    +link($dark-blue, $dark-blue)
+
+/* iPads (landscape) ----------- */
+
+=tablet-landscape
+  @media only screen and(min-device-width : 768px) and(max-device-width : 1024px) and(orientation : landscape)
+    @content
+
+/* some reusable code for the events page ----------- */
+//mini-calendar-styling
+=mini-calendar
+  .calendar-calendar
+    margin-top: 16px
+    border: 0px !important
+    background: $menu_bg
+    padding: 10px
+    tr
+      .mini-day-on,
+      .mini-day-off
+        a.active
+          background: transparent
+          color: #474747
+    .today
+      border-left: 0 !important
+      border-right: 0 !important
+      border-bottom: 0 !important
+      background: transparent !important
+      &.currently-viewed-week
+        background: lighten($menu_bg, 5%) !important
+      .mini-day-on,
+      .mini-day-off
+        background-color: $red
+        border-radius: 15px
+        width: 21px
+        height: 21px
+        line-height: 1.5
+        color: white
+        +bold
+        a
+          +link(white)
+          +bold
+          &.active
+            background: transparent
+            color: white
+    thead,
+    tbody
+      background: $menu_bg
+      td
+        border-right: 0px !important
+        padding: 3px
+        &.currently-viewed-week
+          background: lighten($menu_bg, 5%)
+        &.has-events
+          position: relative
+          &::after
+            content: '•'
+            position: absolute
+            bottom: -10px
+            left: 43%
+            color: #b7b389
+            +fontsize-rem(20px)
+            +at-breakpoint($less-than-758)
+              left: 38%
+    thead
+      border-top: 3px solid white 
+      border-bottom: 3px solid white
+      th
+        +fontsize-rem(10px)
+    .contents
+      background: $menu_bg
+      margin: 0 8px
+      padding: 8px
+      max-width: 135px
+      .views-field-field-slac-event-date,
+      .views-field-field-slac-event-date-1
+        +fontsize-rem(11px)
+        +bold
+      .views-field-title
+        color: $calendar-event-red
+        text-align: left
+        +fontsize-rem(10px)
+
+=mini-calendar-header
+  margin-bottom: 0
+  background: $menu_bg
+  float: left
+  width: 100%
+  padding: 3px 10px
+  a
+    +link($red)
+    +fontsize-rem(10px)
+  .first,
+  .last
+    display: inline-block
+    float: left
+    &::before,
+    &::after
+      content: '<'
+      +fontsize-rem(10px)
+      color: $red
+      margin-left: 5px
+  .first
+    &::after
+      display: none
+    &::before
+      margin-left: 0px
+      margin-right: 5px
+  .last
+    float: right
+    &::after
+      content: '>'
+    &::before
+      display: none
+  .slac-event-minical-header
+    text-align: center
+    +fontsize-rem(14px)
+    font-weight: bold
+
+=list-view-style($color:$red)
+  border-top: 2.5px solid $grey-be
+  padding: 0
+  .views-row
+    background: $grey-e
+    margin: 25px 0
+    padding: 25px
+    position: relative
+    +clearfix
+    .list-title
+      margin-bottom: 16px
+      a
+        +link($color)
+        +fontsize-rem(16px)
+        +bold
+    .list-fulldate,
+    .list-starttime,
+    .list-endtime,
+    .list-location
+      +fontsize-rem(12px)
+      +bold
+    .list-starttime,
+    .list-endtime
+      +inline-block
+    .list-location
+      margin-top: 5px
+    .list-teaser
+      +fontsize-rem(13px)
+      margin-top: 16px
+    .views-field-field-event-image
+      margin-right: 25px
+      +float-items(left)
+      height: 100%
+      img
+        width: 92px
+        height: auto
+        border: 2px solid white
+    .views-field-nothing
+      overflow: hidden
+    .list-view-ics
+      position: absolute
+      top: 27px
+      right: 16px
+      font-size: 0
+      color: $h2-color
+      &:after
+        content: "\e61f"
+        @extend .slac-font
+        +fontsize-rem(15px)

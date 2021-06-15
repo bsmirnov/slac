@@ -1,0 +1,66 @@
+screenshot  = screenshot.png
+name        = SLAC Features THEME
+description = Subtheme of Zen theme.
+
+core        = 7.x
+base theme  = zen
+
+
+;stylesheets[all][] = css/styles.css
+
+;exclude
+stylesheets[all][] = page_basic.css
+;stylesheets[all][] = system.base.css
+stylesheets[all][] = system.theme.css
+stylesheets[all][] = search.css
+stylesheets[all][] = date.css
+stylesheets[all][] = twocol.css
+stylesheets[all][] = two_col.css
+stylesheets[all][] = two_col_article.css
+stylesheets[all][] = two_col_extorg.css
+stylesheets[all][] = two_col_events.css
+stylesheets[all][] = slideshow_description_bottom.css
+stylesheets[all][] = field_slideshow.css
+stylesheets[all][] = slac_mini_slideshow.css
+stylesheets[all][] = calendar_multiday.css
+stylesheets[all][] = date_views.css
+stylesheets[all][] = superfish.css
+stylesheets[all][] = slac_colorbox/colorbox_slac_colorbox.css
+scripts[] = slac_colorbox/colorbox_slac_colorbox.js
+
+
+;scripts[] = js/jquery.placeholder.js
+scripts[] = js/script.js
+scripts[] = js/placeholders.min.js
+
+
+plugins[panels][styles] = plugins/styles
+plugins[panels][layouts] = plugins/layouts
+
+regions[content]        = Content
+regions[help]           = Help
+regions[sidebar_first]  = Sidebar First
+
+features[] = logo
+features[] = name
+features[] = slogan
+features[] = node_user_picture
+features[] = comment_user_picture
+features[] = favicon
+features[] = main_menu
+features[] = secondary_menu
+
+
+settings[zen_breadcrumb]           = yes
+settings[zen_breadcrumb_separator] = ' › '
+settings[zen_breadcrumb_home]      = 1
+settings[zen_breadcrumb_trailing]  = 1
+settings[zen_breadcrumb_title]     = 0
+settings[zen_skip_link_anchor]     = main-menu
+settings[zen_skip_link_text]       = Jump to navigation
+settings[zen_html5_respond_meta][] = respond
+settings[zen_html5_respond_meta][] = html5
+settings[zen_html5_respond_meta][] = meta
+settings[zen_rebuild_registry]     = 0
+settings[zen_wireframes]           = 0
+settings[site_logo_path]           = images/stanford_logo.jpg

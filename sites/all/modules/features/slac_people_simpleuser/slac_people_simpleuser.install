@@ -1,0 +1,296 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function slac_people_simpleuser_install() {
+  $new_user = array(
+    'name' => 'simpleuser',
+    'pass' => user_password($length = 10),
+    'mail' => 'simpleuser@example.com',
+    'status' => 1,
+    'init' => 'simpleuser@example.com',
+  );
+  $user = user_save(null, $new_user);
+
+  _slac_people_simpleuser_install__create_profile($user->uid);
+}
+
+
+/**
+ * Create user profile.
+ */
+function _slac_people_simpleuser_install__create_profile($uid) {
+  $lang = LANGUAGE_NONE;
+  $profiles = array();
+
+  // Bio
+  $profile_bio = profile_create(array('type' => 'bio', 'uid' => $uid));
+
+  $profile_bio->field_prf_bio_bio[$lang][0]['value'] = 'Phasellus vel gravida quam. Sed non elementum erat. Nullam accumsan vestibulum orci, at rhoncus tortor accumsan eu? Nullam fermentum leo nibh, quis condimentum metus porta vitae! Vestibulum ultrices felis non urna laoreet, id rhoncus orci fringilla. Mauris venenatis dolor metus, in dignissim nullam.' .
+  'Mauris venenatis dolor metus, in dignissim nullam. Phasellus vel gravida quam. Sed non elementum erat. Nullam accumsan vestibulum orci, at rhoncus tortor accumsan eu? Nullam fermentum leo nibh, quis condimentum metus porta vitae! Vestibulum ultrices felis non urna laoreet, id rhoncus orci fringilla. Mauris venenatis dolor metus, in dignissim nullam.' .
+  ' Phasellus vel gravida quam. Sed non elementum erat. Nullam accumsan vestibulum orci, at rhoncus tortor accumsan eu? Nullam fermentum leo nibh, quis condimentum metus porta vitae! Vestibulum ultrices felis non urna laoreet, id rhoncus orci fringilla. Mauris venenatis dolor metus, in dignissim nullam. Phasellus vel gravida quam. Sed non elementum erat.' .
+  ' Nullam accumsan vestibulum orci, at rhoncus tortor accumsan eu? Nullam fermentum leo nibh, quis condimentum metus porta vitae! Vestibulum ultrices felis non urna laoreet, id rhoncus orci fringilla. Mauris venenatis dolor metus, in dignissim nullam.';
+
+  // Education.
+  $profile_bio->field_prf_bio_education[$lang][0]['value'] = '1997 | PhD, Scientific Computing and Computational Mathematics';
+  $profile_bio->field_prf_bio_education[$lang][1]['value'] = '1990 | MSc (with honors), Applied Mathematics, Delft University of Technology';
+
+  // Professional Experience.
+  $profile_bio->field_prf_bio_pexp[$lang][0]['value'] = '2012 - 2013 | Visiting Professor, Institut National Polytechnique de Tolouse, France';
+  $profile_bio->field_prf_bio_pexp[$lang][1]['value'] = '2010 - 2014 | Adjunct Professor, Applied and Computational Mathematics, University of Bergen';
+  $profile_bio->field_prf_bio_pexp[$lang][2]['value'] = '2008 - 2010 | Adjunct Professor, Applied and Computational Mathematics, Uppsala University, Sweden';
+  $profile_bio->field_prf_bio_pexp[$lang][3]['value'] = '2008 - Present | Visiting Professor, Applied Earth Science, Delft University of Technology';
+  $profile_bio->field_prf_bio_pexp[$lang][4]['value'] = '2008 - Present | Visiting Professor, Department of Scientific Computing, Uppsala University, Sweden';
+
+  // Areas of Research.
+  $profile_bio->field_prf_bio_ar[$lang][0]['value'] = '2012 - 2013 | Visiting Professor, Institut National Polytechnique de Tolouse, France';
+  $profile_bio->field_prf_bio_ar[$lang][1]['value'] = '2010- 2014 | Adjunct Professor, Applied and Computational Mathematics, University of Bergen';
+  $profile_bio->field_prf_bio_ar[$lang][2]['value'] = '2008 - Present | Visiting Professor, Applied Earth Science, Delft University of Technology';
+  $profile_bio->field_prf_bio_ar[$lang][3]['value'] = '2008 - Present | Visiting Professor, Department of Scientific Computing, Uppsala University, Sweden';
+
+  // Honors and Awards.
+  $profile_bio->field_prf_bio_ha[$lang][0]['value'] = '2011 Magne Espedal Professor II, awarded by the University of Bergen , Norway';
+  $profile_bio->field_prf_bio_ha[$lang][1]['value'] = '2011 School of Earth Sciences Award for Excellence in Teaching';
+  $profile_bio->field_prf_bio_ha[$lang][2]['value'] = '2010 - 2012 | Stanford Follow';
+  $profile_bio->field_prf_bio_ha[$lang][3]['value'] = '2009 | Fellow, Leopold Leadership Program';
+  $profile_bio->field_prf_bio_ha[$lang][4]['value'] = '2008 | Fellow, Leopold Leadership Program II';
+
+  // Professional Activities.
+  $profile_bio->field_prf_bio_pa[$lang][0]['value'] = '2013 | Invited speaker, Mathematics of Planet Earth, Canada';
+  $profile_bio->field_prf_bio_pa[$lang][1]['value'] = '2013 | Speaker, TedX Stanford';
+  $profile_bio->field_prf_bio_pa[$lang][2]['value'] = '2013 - current | LLNL Computational Directorate Review Commitee member';
+  $profile_bio->field_prf_bio_pa[$lang][3]['value'] = '2013 - current | Advisor Board, Computational Mathematics, University College Dublin';
+
+  // Publications.
+  $publications_info = array(
+    array(
+      'title' => '2013 | First Results From the Electron Hose Instability Studies in FACET',
+      'url' => '',
+      'doc_type' => 'ms-office-word'
+    ),
+    array(
+      'title' => '2013 | 3D Simulations of Multipacting in the 56 MHz SRF Cavity',
+      'url' => '',
+      'doc_type' => '_none'
+    ),
+    array(
+      'title' => '2012 | Novel Six-Quark Hidden-Color Dibaryon States in QCD',
+      'url' => '',
+      'doc_type' => 'pdf'
+    ),
+    array(
+      'title' => '2012 | LCLS Femto-Second Timing and Synchronization System Update',
+      'url' => '',
+      'doc_type' => 'compressed'
+    ),
+    array(
+      'title' => '2011 | Injected Beam Imaging at SPEAR 3 with a Digital Optic Mask',
+      'url' => '',
+      'doc_type' => 'external'
+    ),
+    array(
+      'title' => '2010 | Calculation of Coherent Wiggler Radiation Using Eigenfunction Expansion Method',
+      'url' => '',
+      'doc_type' => 'pdf'
+    ),
+  );
+
+  foreach ($publications_info as $info) {
+    $field_collection_item = entity_create('field_collection_item', array('field_name' => 'field_prf_bio_pub'));
+    $field_collection_item->field_title_and_url = array(
+      $lang => array(
+        array(
+          'url' => 'http://slac.stanford.edu/',
+          'title' => $info['title'],
+        )
+      )
+    );
+    $field_collection_item->field_document_type = array(LANGUAGE_NONE => array(array('value' => $info['doc_type'])));
+    $field_collection_item->setHostEntity('profile2', $profile_bio);
+    entity_save('field_collection_item', $field_collection_item);
+  }
+
+  // Talks and Presentations.
+  $talks_info = array(
+    array(
+      'title' => '2013 | DOE Climate Change Study',
+      'url' => '',
+      'doc_type' => 'ms-office-excel'
+    ),
+    array(
+      'title' => '2012 | 9th Annual SSRL/LCS Users Meeting Presentation. "Developing Nanotube with New Materials."',
+      'url' => '',
+      'doc_type' => 'gdoc'
+    ),
+    array(
+      'title' => '2012 | Snowmass Conference, Panel Moderator, Funding Strategies Discusion (YouTube)',
+      'url' => '',
+      'doc_type' => 'ms-office-powerpoint'
+    ),
+    array(
+      'title' => '2011 | 9th Annual SSRL/LCS Users Meeting Presentation. "Developing Nanotube with New Materials."',
+      'url' => '',
+      'doc_type' => 'keynote'
+    ),
+  );
+
+  foreach ($talks_info as $info) {
+    $field_collection_item = entity_create('field_collection_item', array('field_name' => 'field_prf_bio_tp'));
+    $field_collection_item->field_title_and_url = array(
+      $lang => array(
+        array(
+          'url' => 'http://slac.stanford.edu/',
+          'title' => $info['title'],
+        )
+      )
+    );
+    $field_collection_item->field_document_type = array(LANGUAGE_NONE => array(array('value' => $info['doc_type'])));
+    $field_collection_item->setHostEntity('profile2', $profile_bio);
+    entity_save('field_collection_item', $field_collection_item);
+  }
+
+  $profile_bio->bundle = 'bio';
+  $profiles[] = array(
+    'type' => 'bio',
+    'profile' => $profile_bio,
+    'form_state' => array(
+      'values' => array(
+        'profile_bio' => array(),
+      ),
+    ),
+  );
+
+  // Contact
+  $profile_contact = profile_create(array('type' => 'contact', 'uid' => $uid));
+
+  $file = _slac_people_simpleuser_install__slideshow_images();
+  $profile_contact->field_prf_contact_photo[$lang][0] = array(
+    'fid' => $file->fid
+  );
+  $profile_contact->field_prf_contact_fname = array(LANGUAGE_NONE => array(array('value' => 'John')));
+  $profile_contact->field_prf_contact_lname = array(LANGUAGE_NONE => array(array('value' => 'Doe')));
+  $profile_contact->field_prf_contact_title[$lang][0]['value'] = 'Senior Staff Scientist';
+  $profile_contact->field_prf_contact_affiliation[$lang][0]['value'] = 'FACET';
+  $profile_contact->field_prf_contact_rg[$lang][0]['value'] = 'Aliquam pulvinar magna in scelerisque tincidunt.';
+  $profile_contact->field_prf_contact_email[$lang][0]['email'] = 'simpleuser@example.com';
+  $profile_contact->field_prf_contact_phone[$lang][0]['value'] = '6509262939';
+  $profile_contact->field_prf_contact_fax[$lang][0]['value'] = '6509262939';
+  $profile_contact->field_prf_contact_location[$lang][0] = array(
+    'street' => '2575 Sand Hill Road',
+    'city' => 'Menlo Park',
+    'province' => 'CA',
+    'postal_code' => '94025',
+    'country' => 'us',
+    'province_name' => 'California',
+    'country_name' => 'United States',
+  );
+  $profile_contact->field_prf_contact_website = array(
+    $lang => array(
+      array(
+        'url' => 'http://slac.stanford.edu',
+        'title' => 'slac.stanford.edu',
+      )
+    )
+  );
+  $profile_contact->bundle = 'contact';
+
+  $profiles[] = array(
+    'type' => 'contact',
+    'profile' => $profile_contact,
+    'form_state' => array(
+      'values' => array(
+        'profile_contact' => array(),
+      ),
+    ),
+  );
+
+  // Media
+  $profile_media = profile_create(array('type' => 'social_media', 'uid' => $uid));
+
+  $profile_media->field_prf_social_twitter = array(
+    $lang => array(
+      array(
+        'url' => 'http://twiter.com/simpleuser123',
+        'title' => 'twitter.com/simpleuser123',
+      )
+    )
+  );
+  $profile_media->field_prf_social_facebook = array(
+    $lang => array(
+      array(
+        'url' => 'http://facebook.com/simpleuser123',
+        'title' => 'facebook.com/simpleuser123',
+      )
+    )
+  );
+  $profile_media->field_prf_social_linkedin = array(
+    $lang => array(
+      array(
+        'url' => 'http://linkedin.com/in/simpleuser123',
+        'title' => 'linkedin.com/in/simpleuser123',
+      )
+    )
+  );
+  $profile_media->field_prf_social_flickr = array(
+    $lang => array(
+      array(
+        'url' => 'http://flickr.com/simpleuser123',
+        'title' => 'flickr.com/simpleuser123',
+      )
+    )
+  );
+  $profile_media->field_prf_social_googleplus = array(
+    $lang => array(
+      array(
+        'url' => 'http://plus.google.com/simpleuser123',
+        'title' => 'plus.google.com/simpleuser123',
+      )
+    )
+  );
+  $profile_media->bundle = 'social_media';
+
+  $profiles[] = array(
+    'type' => 'social_media',
+    'profile' => $profile_media,
+    'form_state' => array(
+      'values' => array(
+        'profile_social_media' => array(),
+      ),
+    ),
+  );
+
+  // Save profile.
+  foreach ($profiles as $profile) {
+    $form = array();
+    $form['#parents'] = array();
+    field_attach_submit('profile2', $profile['profile'], $form, $profile['form_state']);
+    $profile['profile']->bundle = $profile['type'];
+    profile2_save($profile['profile']);
+  }
+
+}
+
+/**
+ * Create images for user profile.
+ */
+function _slac_people_simpleuser_install__slideshow_images() {
+  global $user;
+  $destination_directory = 'public://';
+  file_prepare_directory($destination_directory, FILE_CREATE_DIRECTORY);
+  $filename =  'profile_photo1.jpg';
+  $source = DRUPAL_ROOT . '/' . drupal_get_path('module', 'slac_people_simpleuser') . '/' . $filename;
+  $destination = $destination_directory . '/' . $filename;
+  $uri = file_unmanaged_copy($source, $destination);
+
+  $file = new stdClass();
+  $file->fid = NULL;
+  $file->uri = $uri;
+  $file->filename = drupal_basename($uri);
+  $file->filemime = file_get_mimetype($file->uri);
+  $file->uid      = $user->uid;
+  $file->status   = FILE_STATUS_PERMANENT;
+  $file = file_save($file);
+
+  return $file;
+}
