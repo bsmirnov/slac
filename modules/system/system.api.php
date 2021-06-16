@@ -749,6 +749,26 @@ function hook_js_alter(&$javascript) {
 }
 
 /**
+ * Perform necessary alterations to the concatenated JavaScript before it is
+ * presented on the page.
+ *
+ * @param $contents
+ *   A string of the concatenated JavaScript.
+ *
+ * @see drupal_build_js_cache()
+ */
+function hook_js_cache_alter(&$contents) {
+  $header = <<<HEADER
+/**
+ * Powered by Pressflow
+ * http://pressflow.org
+ */
+HEADER;
+
+  $contents = $header . "\n" . $contents;
+}
+
+/**
  * Registers JavaScript/CSS libraries associated with a module.
  *
  * Modules implementing this return an array of arrays. The key to each
@@ -1888,8 +1908,8 @@ function hook_boot() {
  *
  * This hook is not run on cached pages.
  *
- * To add CSS or JS that should be present on all pages, modules should not
- * implement this hook, but declare these files in their .info file.
+ * To add CSS or JS files that should be present on all pages, modules should
+ * not implement this hook, but declare these files in their .info file.
  *
  * @see hook_boot()
  */

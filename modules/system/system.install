@@ -236,8 +236,18 @@ function system_requirements($phase) {
 
   // Test settings.php file writability
   if ($phase == 'runtime') {
-    $conf_dir = drupal_verify_install_file(conf_path(), FILE_NOT_WRITABLE, 'dir');
-    $conf_file = drupal_verify_install_file(conf_path() . '/settings.php', FILE_EXIST|FILE_READABLE|FILE_NOT_WRITABLE);
+    // Pantheon handles permissions automatically.
+    if (defined('PANTHEON_ENVIRONMENT')) {
+      // Do not alter sites/default permissions.
+      $conf_dir = TRUE;
+      // Ensure settings.php exists.
+      $conf_file = drupal_verify_install_file(conf_path() . '/settings.php', FILE_EXIST);
+    }
+    // Drupal core logic.
+    else {
+      $conf_dir = drupal_verify_install_file(conf_path(), FILE_NOT_WRITABLE, 'dir');
+      $conf_file = drupal_verify_install_file(conf_path() . '/settings.php', FILE_EXIST|FILE_READABLE|FILE_NOT_WRITABLE);
+    }
     if (!$conf_dir || !$conf_file) {
       $requirements['settings.php'] = array(
         'value' => $t('Not protected'),
@@ -248,7 +258,12 @@ function system_requirements($phase) {
         $requirements['settings.php']['description'] .= $t('The directory %file is not protected from modifications and poses a security risk. You must change the directory\'s permissions to be non-writable. ', array('%file' => conf_path()));
       }
       if (!$conf_file) {
-        $requirements['settings.php']['description'] .= $t('The file %file is not protected from modifications and poses a security risk. You must change the file\'s permissions to be non-writable.', array('%file' => conf_path() . '/settings.php'));
+        if (defined('PANTHEON_ENVIRONMENT')) {
+          $requirements['settings.php']['description'] .= $t('The file %file does not exist. Please add one to your site codebase by copying default.settings.php to settings.php.', array('%file' => conf_path() . '/settings.php'));
+        }
+        else {
+          $requirements['settings.php']['description'] .= $t('The file %file is not protected from modifications and poses a security risk. You must change the file\'s permissions to be non-writable.', array('%file' => conf_path() . '/settings.php'));
+        }
       }
     }
     else {
@@ -280,8 +295,8 @@ function system_requirements($phase) {
     );
     foreach ($htaccess_files as $htaccess_file => $info) {
       // Check for the string which was added to the recommended .htaccess file
-      // in the latest security update.
-      if (!file_exists($htaccess_file) || !($contents = @file_get_contents($htaccess_file)) || strpos($contents, 'Drupal_Security_Do_Not_Remove_See_SA_2013_003') === FALSE) {
+      // in the latest security update. Skipped on Pantheon where it has no effect.
+      if (!defined('PANTHEON_ENVIRONMENT') && (!file_exists($htaccess_file) || !($contents = @file_get_contents($htaccess_file)) || strpos($contents, 'Drupal_Security_Do_Not_Remove_See_SA_2013_003') === FALSE)) {
         $requirements[$htaccess_file] = array(
           'title' => $info['title'],
           'value' => $t('Not fully protected'),
@@ -516,6 +531,37 @@ function system_requirements($phase) {
         'value' => $t('Fails'),
         'severity' => REQUIREMENT_ERROR,
         'description' => $t('Your system or network configuration does not allow Drupal to access web pages, resulting in reduced functionality. This could be due to your webserver configuration or PHP settings, and should be resolved in order to download information about available updates, fetch aggregator feeds, sign in via OpenID, or use other network-dependent services. If you are certain that Drupal can access web pages but you are still seeing this message, you may add <code>$conf[\'drupal_http_request_fails\'] = FALSE;</code> to the bottom of your settings.php file.'),
+      );
+    }
+  }
+
+  // Warning for httpoxy on IIS with affected PHP versions.
+  // @see https://www.drupal.org/node/2783079
+  if (strpos($software, 'Microsoft-IIS') !== FALSE && (version_compare(PHP_VERSION, '5.5.38', '<')
+    || (version_compare(PHP_VERSION, '5.6.0', '>=') && version_compare(PHP_VERSION, '5.6.24', '<'))
+    || (version_compare(PHP_VERSION, '7.0.0', '>=') && version_compare(PHP_VERSION, '7.0.9', '<'))
+    )) {
+    $dom = new \DOMDocument('1.0', 'UTF-8');
+    $webconfig = file_get_contents('web.config');
+    // If you are here the web.config file must - of course - be well formed.
+    // But the PHP DOM component will throw warnings on some XML compliant
+    // stuff, so silently parse the configuration file.
+    @$dom->loadHTML($webconfig);
+    $httpoxy_rewrite = FALSE;
+    foreach ($dom->getElementsByTagName('rule') as $rule) {
+      foreach ($rule->attributes as $attr) {
+        if (@$attr->name == 'name' && @$attr->nodeValue == 'Erase HTTP_PROXY') {
+          $httpoxy_rewrite = TRUE;
+          break 2;
+        }
+      }
+    }
+    if (!$httpoxy_rewrite) {
+      $requirements['iis_httpoxy_protection'] = array(
+        'title' => t('IIS httpoxy protection'),
+        'value' => t('Your PHP runtime version is affected by the httpoxy vulnerability.'),
+        'description' => t('Either update your PHP runtime version or uncomment the "Erase HTTP_PROXY" rule in your web.config file and add HTTP_PROXY to the allowed headers list. See more details in the <a href="@link">security advisory</a>.', array('@link' => 'https://www.drupal.org/SA-CORE-2016-003')),
+        'severity' => REQUIREMENT_ERROR,
       );
     }
   }
@@ -2870,7 +2916,7 @@ function system_update_7061(&$sandbox) {
     if (!db_table_exists('system_update_7061')) {
       $table = array(
         'description' => t('Stores temporary data for system_update_7061.'),
-        'fields' => array('vid' => array('type' => 'int')),
+        'fields' => array('vid' => array('type' => 'int', 'not null' => TRUE)),
         'primary key' => array('vid'),
       );
       db_create_table('system_update_7061', $table);
@@ -3283,6 +3329,27 @@ function system_update_7081() {
     ->condition('status', 0)
     ->condition('schema_version', 0)
     ->execute();
+}
+
+/**
+ * Add 'jquery-extend-3.4.0.js' to the 'jquery' library.
+ */
+function system_update_7082() {
+  // Empty update to force a rebuild of hook_library() and JS aggregates.
+}
+
+/**
+ * Add 'jquery-html-prefilter-3.5.0-backport.js' to the 'jquery' library.
+ */
+function system_update_7083() {
+  // Empty update to force a rebuild of hook_library() and JS aggregates.
+}
+
+/**
+ * Rebuild JavaScript aggregates to include 'ajax.js' fix for Chrome 83.
+ */
+function system_update_7084() {
+  // Empty update to force a rebuild of JS aggregates.
 }
 
 /**
