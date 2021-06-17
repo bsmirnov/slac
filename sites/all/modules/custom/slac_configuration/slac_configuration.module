@@ -1,0 +1,245 @@
+<?php
+
+$profile = variable_get('install_profile', '');
+if ($profile == 'slac_int_org') {
+  define('SLAC_CONFIGURATION_LOGO_HEIGHT_INFO', '65');
+}
+else {
+  define('SLAC_CONFIGURATION_LOGO_HEIGHT_INFO', '33');
+}
+
+/**
+ * Implements hook_permission().
+ */
+function slac_configuration_permission() {
+  return array(
+    'slac administer configuration' => array(
+      'title' => t('SLAC administer configuration'),
+      'description' => t('Change site name and other settings.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function slac_configuration_menu() {
+	$items['site-configuration'] = array(
+    'title' => 'Site configuration',
+	  'page callback' => 'drupal_get_form',
+	  'page arguments' => array('slac_configuration_form'),
+	  'access arguments' => array('slac administer configuration'),
+	  'type' => MENU_NORMAL_ITEM,
+	);
+	return $items;
+}
+
+function slac_configuration_form($form, &$form_state) {
+  $form = array();
+
+  $form['help'] = array(
+    '#markup' => t('On this page you can change your site\'s settings.'),
+    '#prefix' =>'<h3 class="form-item">',
+    '#suffix' => '</h3>',    
+  );
+
+  $form['site_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site Name'),
+    '#default_value' => variable_get('site_name', ''),
+    '#required' => TRUE,
+  );
+
+  $form['site_logo'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Logo image settings'),
+    '#description' => t('If toggled on, the following logo will be displayed.'),
+    '#attributes' => array('class' => array('theme-settings-bottom')),
+  );
+  $form['site_logo']['default_logo'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the default logo'),
+    '#default_value' => theme_get_setting('default_logo'),
+    '#tree' => FALSE,
+    '#description' => t('Check here if you want the theme to use the logo supplied with it.')
+  );
+  $form['site_logo']['settings'] = array(
+    '#type' => 'container',
+    '#states' => array(
+      // Hide the logo settings when using the default logo.
+      'invisible' => array(
+        'input[name="default_logo"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['site_logo']['settings']['logo_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path to custom logo'),
+    '#description' => t('The path to the file you would like to use as your logo file instead of the default logo.'),
+    '#default_value' => theme_get_setting('logo_path'),
+  );
+  $form['site_logo']['settings']['logo_upload'] = array(
+    '#prefix' =>  '<div class="messages notice">' . t("Logo dimensions restrictions: maximum width - 200 pixels, height - @height pixels. ",
+      array('@height' => SLAC_CONFIGURATION_LOGO_HEIGHT_INFO)) . '</div>',
+    '#type' => 'file',
+    '#title' => t('Upload logo image'),
+    '#maxlength' => 40,
+    '#description' => t("If you don't have direct file access to the server, use this field to upload your logo."),
+  );
+
+  $form['site_logo_url'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Logo Link Settings'),
+    '#description' => t('Enter the URL you wish the logo to point to. You must enter "http://" in front of your URL'),
+    '#attributes' => array('class' => array('theme-settings-bottom')),
+
+  );
+  $form['site_logo_url']['settings']['logo_link'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site Logo URL'),
+    '#default_value' => variable_get('logo_link', 'http://www6.slac.stanford.edu'),
+  );
+
+
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'slac_configuration_submit';
+  $form['#validate'][] = 'slac_configuration_validate';
+
+  return $form;
+}
+
+function slac_configuration_validate($form, &$form_state) {
+  module_load_include('inc', 'system', 'system.admin');
+  // Handle file uploads.
+  $validators = array('file_validate_is_image' => array());
+
+  // Check for a new uploaded logo.
+  $file = file_save_upload('logo_upload', $validators);
+  if (isset($file)) {
+    // File upload was attempted.
+    if ($file) {
+      // Put the temporary file in form_values so we can save it on submit.
+      $form_state['values']['logo_upload'] = $file;
+    }
+    else {
+      // File upload failed.
+      form_set_error('logo_upload', t('The logo could not be uploaded.'));
+    }
+  }
+
+  // If the user provided a path for a logo or favicon file, make sure a file
+  // exists at that path.
+  if ($form_state['values']['logo_path']) {
+    $path = _system_theme_settings_validate_path($form_state['values']['logo_path']);
+    if (!$path) {
+      form_set_error('logo_path', t('The custom logo path is invalid.'));
+    }
+  }
+}
+
+function slac_configuration_submit($form, &$form_state) {
+  module_load_include('inc', 'system', 'system.admin');
+  // Exclude unnecessary elements before saving.
+  form_state_values_clean($form_state);
+  $values = $form_state['values'];
+
+  // If the user uploaded a new logo or favicon, save it to a permanent location
+  // and use it in place of the default theme-provided file.
+  if ($file = $values['logo_upload']) {
+    unset($values['logo_upload']);
+    $filename = file_unmanaged_copy($file->uri);
+    $values['default_logo'] = 0;
+    $values['logo_path'] = $filename;
+    $values['toggle_logo'] = 1;
+  }
+
+  // If the user entered a path relative to the system files directory for
+  // a logo, store a public:// URI so the theme system can handle it.
+  if (!empty($values['logo_path'])) {
+    $values['logo_path'] = _system_theme_settings_validate_path($values['logo_path']);
+  }
+
+  $theme_slac_settings = variable_get('theme_slac_settings', array());
+  foreach ($values as $key => $value) {
+    $theme_slac_settings[$key] = $value;
+  }
+  variable_set('theme_slac_settings', $theme_slac_settings);
+
+  drupal_set_message(t('The configuration options have been saved.'));
+
+  cache_clear_all();
+}
+
+
+/**
+ * Implements hook_admin_menu_output_alter().
+ */
+function slac_configuration_admin_menu_output_alter(&$content) {
+  if (user_access('slac administer configuration')) {
+    $content['menu']['slac-site-configuration'] = array(
+      '#title' => t('Site Configuration'),
+      '#href' => 'site-configuration',
+      '#weight' => 0,
+    );
+  }
+}
+
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function slac_configuration_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'ctools_content_types';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function slac_configuration_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'system_theme_settings' && isset($form['logo']['settings']['logo_upload'])) {
+    $form['logo']['settings']['logo_upload']['#prefix'] = '<div class="messages notice">'
+      . t("Logo dimensions restrictions: maximum width - 200 pixels, height - @height pixels. ",
+        array('@height' => SLAC_CONFIGURATION_LOGO_HEIGHT_INFO)) . '</div>';
+  }
+}
+
+/**
+ * Implements hook_flush_caches()
+ *
+ * Rational: File streams are being broken on clear cache runs. Essentially, 
+ * the only way to fix this is to re-check the folder and file permissions to
+ * update the stream.
+ */
+function slac_configuration_flush_caches() {
+  slac_configuration_file_presave(NULL);
+
+  // return empty array as we aren't actually clearing caches
+  return array();
+}
+
+/**
+ * Implements hook_file_presave()
+ *
+ * Rational: File streams are being broken on clear cache runs. Essentially, 
+ * the only way to fix this is to re-check the folder and file permissions to
+ * update the stream.
+ */
+function slac_configuration_file_presave($file) {
+  // This function does not actually modify the file object, it simply checks 
+  // the folders files may get saved into. 
+  $form['file_public_path'] = array(
+    '#value' => variable_get('file_public_path', conf_path() . '/files'),
+  );
+  $form['file_private_path'] = array(
+    '#value' => variable_get('file_private_path', ''),
+  );
+  $form['file_temporary_path'] = array(
+    '#value' => variable_get('file_temporary_path', file_directory_temp()),
+  );
+  
+  foreach ($form as $element) {
+    @system_check_directory($element);
+  }
+}

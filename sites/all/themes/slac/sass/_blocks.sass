@@ -1,0 +1,144 @@
+//Contact information
+//-----------------------------------
+.contact-information
+  .views-label
+    font-size: em(10px)
+    font-weight: bold
+    color: $grey-2
+    text-transform: uppercase
+
+  .field-content
+    +fontsize-rem(14px)
+    color: inherit
+
+  .views-field
+    margin-bottom: 11px
+
+
+//Blog Tags
+//-----------------------------------
+.blog-tags
+  ul
+    @extend .clearfix
+    li
+      float: left
+      margin-right: 23px
+      margin-bottom: 7px
+      a
+        display: block
+        padding: 2px 8px 4px
+        +border-radius(3px)
+        background-color: $grey-f1
+        //font-size: em(14px)
+        color: $text-color-1
+        &:hover
+          background-color: $red
+          text-decoration: none !important
+          color: #fff
+
+  .region-grey-background-style &
+    ul li a
+      background-color: #fff
+      &:hover
+        color: #fff
+        background-color: $red
+
+
+//Blog Archive
+//-----------------------------------
+.connect-with-me
+  .views-row
+    @extend .clearfix
+
+    > div
+      float: left
+      margin-right: 17px
+      margin-bottom: 17px
+      a
+        text-indent: -9000px
+        display: block
+        color: $grey-87
+        position: relative
+        width: 36px
+        height: 36px
+        overflow: hidden
+
+        &:after
+          @extend .slac-font
+          position: absolute
+          top: 50%
+          left: 50%
+          margin-top: -22px
+          margin-left: -18px
+          +fontsize-rem(35px)
+
+        &:hover
+          color: $red
+
+      &:last-of-type
+        margin-right: 0
+
+      &.twitter-link
+        a:after
+          content: '\e610'
+      &.facebook
+        a:after
+          content: '\e604'
+      &.linked-in
+        a:after
+          content: '\e602'
+          +fontsize-rem(41px)
+          margin-top: -25px
+      &.flikr
+        a:after
+          content: '\e601'
+
+      &.goolge-plus
+        a:after
+          content: '\e603'
+
+
+//Blog Archive
+//-----------------------------------
+ul.blog-archive-class
+  padding-left: 5px
+
+  > li
+
+    a
+      margin-bottom: 9px
+      display: block
+    ul
+      padding-left: 19px
+      @extend .clearfix
+      li
+        margin-bottom: 9px
+        margin-right: 15px
+        float: left
+        list-style-type: disc
+        margin-left: 15px
+
+
++at-breakpoint($tablet)
+  ul.blog-archive-class
+    > li
+      ul
+        li
+          margin-bottom: 9px
+          margin-right: 0
+          float: none
+
+.with-right-sidebar .general-right.expand-full
+  @media screen and (min-width: 1200px)
+    width: 72.5%
+    .panels-ipe-editing &
+      width: 52.1259%
+.expand-hide
+  display: none
+  .panels-ipe-editing &
+    display: block
+
+
+//$only-tablet: 691px 893px
+//$tablet-with-small-desktop: 691px 1138px
+//$mobile-and_tablet: 0 690px

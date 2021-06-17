@@ -1,0 +1,108 @@
+<?php
+/**
+ * @file
+ * Code for the SLAC News feature.
+ */
+
+include_once 'slac_news.features.inc';
+
+/**
+ * Implements hook_default_page_manager_handlers_alter().
+ */
+function slac_news_default_page_manager_handlers_alter(&$data) {
+  if (isset($data['node_view_panel_context_2']->conf['display']->content['new-6']->subtype)
+    && $data['node_view_panel_context_2']->conf['display']->content['new-6']->subtype == 'uuid:fad4b398-3f64-495f-92bc-31dd59a3aa6a') {
+    $share_fpp_uuid = variable_get('slac_news_share_block_fpp_uuid', 0);
+    $data['node_view_panel_context_2']->conf['display']->content['new-6']->subtype = 'uuid:' . $share_fpp_uuid;
+  }
+}
+
+//Add more view modes for Media formatting.
+function slac_news_entity_info_alter(&$entity_info) {
+  $entity_info['file']['view modes']['crop_crop_news_landscape'] = array(
+    'label' => t('Crop News Landscape'),
+    'custom settings' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function slac_news_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'slac_news' && $view_mode == 'full') {
+    menu_set_active_item(drupal_get_normal_path('news'));
+  }
+}
+
+/**
+ * Implements hook_ctools_block_content_type_pre_render().
+ *
+ * Set different current path.
+ */
+function slac_news_ctools_block_content_type_pre_render($subtype, $conf) {
+  $arg0 = arg(0);
+  $alias = drupal_get_path_alias(current_path());
+  $alias_array = explode('/', $alias);
+  if ($arg0 != 'news' && $alias_array['0'] != 'news') {
+    return;
+  }
+  $current_path = &drupal_static(__FUNCTION__);
+  $current_path = current_path();
+
+  $nid = _slac_news_get_news_node_nid();
+  menu_set_active_item('node/' . $nid);
+}
+
+/**
+ * Implements hook_ctools_block_content_type_post_render().
+ *
+ * Restore previous path.
+ */
+function slac_news_ctools_block_content_type_post_render($subtype, $conf) {
+  $current_path = &drupal_static('slac_news_ctools_block_content_type_pre_render');
+  if (empty($current_path)) {
+    return;
+  }
+
+  menu_set_active_item($current_path);
+  $current_path = '';
+}
+
+/**
+ * Get nid of the News node.
+ */
+function _slac_news_get_news_node_nid() {
+  /*$query = new EntityFieldQuery();
+  $news_node = $query
+    ->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'landing_page')
+    ->propertyCondition('title', 'News and Press Releases')
+    ->range(0, 4)
+    ->execute();
+
+  $news_node = reset($news_node['node']);
+
+  dpm($news_node);
+  */
+    if ($node = menu_get_object()) {
+        // Get the nid
+        $nid = $node->nid;
+    }
+  return $nid;
+}
+
+
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function slac_news_preprocess_node(&$variables) {
+  if ($variables['type'] === 'slac_news') {
+    // Set the $node_url variable to the article source URL. This makes it so
+    // when people click article titles from the "News and Press Releases" view,
+    // they are taken to the original article instead of our copy of it.
+    if ($source_urls = field_get_items('node', $variables['node'], 'field_slac_news_source')) {
+      $variables['node_url'] = $source_urls[0]['url'];
+    }
+  }
+}

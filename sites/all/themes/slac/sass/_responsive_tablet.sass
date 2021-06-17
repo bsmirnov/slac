@@ -1,0 +1,175 @@
++at-breakpoint($tablet)
+
+  .page-basic
+    > .header-menu,
+    > .main-menu
+      display: block
+    > .content
+      margin: 37px 0
+
+
+
+
+
+
+  //Header menu
+  //-----------------------------------
+  .header-menu
+    text-align: right
+    font-size: em(11px)
+    padding: 9px 0
+    ul
+      display: inline-block
+      li
+        float: left
+        a
+          color: #757575
+          padding: 0 13px
+          border-left: 1px solid #757575
+          display: block
+          text-decoration: none
+          &:hover
+            text-decoration: underline
+        &:first-child
+          a
+            border-left: 0
+            padding-left: 0
+
+  //Responsive information
+  //-----------------------------------
+  .site-title
+    // &:after
+      // content: 'tablet'
+    margin: 0 0 9px 0
+  //Site name
+  //-----------------------------------
+  .pane-page-site-name
+    font-size: em(34px)
+    font-weight: bold
+
+
+
+  .mobile-block
+    display: none !important
+
+  .page-basic
+    > .header
+      .header-wrapper
+        padding: 15px 0 10px
+
+  .page-basic-io
+    > .header
+      .header-wrapper
+        padding-top: 0
+
+  .icon-wrapper
+    display: none !important
+
+  .pane-system-user-menu
+    display: inline-block !important
+    ul
+      li
+        a:hover
+          text-decoration: underline
+  //Content
+  //-----------------------------------
+  .general-left, .panel-col-first, .general-left-title
+    +span-columns(8,12)
+    .full-width &
+      +span-columns(12,12)
+
+  .general-left
+    .reverse &
+      +span-columns(5,12)
+
+  .general-left-title
+    .reverse &
+      +prefix(5, 12)
+      +reset-columns
+
+    .reverse.full-width &
+      +prefix(0, 12)
+
+  .general-right, .panel-col-last
+
+    +span-columns(4 omega,12)
+    .reverse &
+      +span-columns(7 omega,12)
+      
+    .reverse.full-width &
+      +span-columns(12,12) 
+
+
+  .general-right, .general-left
+    //padding-top: 47px
+
+    .pane-page-content &
+      .front &
+        padding-top: 0
+        //+reset-columns //Disable frontpage wrapper
+
+
+  .panel-pane
+    .general-right &
+      .content &
+        padding: 0px 22px 13px 22px
+        width: 100%
+
+
+
+  .general-right
+    .content &
+      //.front &
+      .panel-pane, .panels-ipe-portlet-wrapper
+        //padding: 0px 22px 13px 22px
+        //width: 100%
+        .reverse &
+          padding: 0
+        &:first-of-type
+          /*margin-top: -24px*/
+          &.region-grey-background-style, .front &
+            /*margin-top: 0*/
+
+
+        &.region-grey-background-style
+          padding-top: 13px
+
+  .panel-pane, .panels-ipe-portlet-wrapper
+    .general-right &
+      .reverse &
+        padding: 0
+
+
+  //.pane-page-content
+  //  .general-left
+  //    .inside
+  //      > .panel-pane
+  //        &:last-of-type
+
+  //Last footer
+  //-----------------------------------
+  .footer-seccond
+    //margin-bottom: 30px
+    +clearfix
+    ul
+      border-bottom: 0
+      padding-bottom: 0
+      margin-bottom: 0
+      li
+        margin-right: 3%
+
+
+  //Profile detail page
+  //-----------------------------------
+  .views-field-field-prf-contact-photo
+    width: 188px
+
+
+  //Site logo header
+  //-----------------------------------
+  .pane-page-logo
+    img
+      width: 158px
+
+
+

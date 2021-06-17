@@ -1,0 +1,238 @@
+name = SLAC Intranet Organization
+description = A distribution for SLAC Intranet sites. 
+version = VERSION
+core = 7.x
+
+;Standard profile
+dependencies[] = block
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = taxonomy
+;dependencies[] = search
+dependencies[] = field_ui
+dependencies[] = file
+
+;Contrib depedencies
+dependencies[] = admin_menu
+dependencies[] = module_filter
+dependencies[] = ctools
+dependencies[] = page_manager
+dependencies[] = views
+dependencies[] = views_ui
+dependencies[] = textformatter
+dependencies[] = date
+dependencies[] = date_api
+dependencies[] = date_popup
+dependencies[] = date_ical
+dependencies[] = date_views
+dependencies[] = link
+dependencies[] = entity
+dependencies[] = libraries
+dependencies[] = menu_attributes
+dependencies[] = menu_trail_by_path
+dependencies[] = panels_mini
+;dependencies[] = panels_node
+dependencies[] = panels
+dependencies[] = panels_ipe
+dependencies[] = panelizer
+dependencies[] = paranoia
+dependencies[] = slac_drush
+dependencies[] = token
+dependencies[] = pathauto
+dependencies[] = jreject
+dependencies[] = googleanalytics
+dependencies[] = panelizer
+dependencies[] = profile2
+dependencies[] = views_bulk_operations
+dependencies[] = admin_views
+dependencies[] = entitycache
+dependencies[] = securepages
+dependencies[] = superfish
+dependencies[] = views_feed_pane
+dependencies[] = metatag
+
+;Administration
+dependencies[] = adminimal_admin_menu
+dependencies[] = slac_features_admin
+; Forums
+dependencies[] = forum
+dependencies[] = advanced_forum
+
+;Development modules
+dependencies[] = devel
+dependencies[] = devel_generate
+
+;Features dependencies
+dependencies[] = features
+dependencies[] = uuid
+dependencies[] = uuid_features
+dependencies[] = strongarm
+
+;FAQ
+dependencies[] = faq
+dependencies[] = faq_ask
+dependencies[] = entity_token
+dependencies[] = rules
+dependencies[] = views_content
+dependencies[] = field_permissions
+
+;Wiki
+dependencies[] = diff
+dependencies[] = markdown
+dependencies[] = bueditor
+dependencies[] = bueditor_plus
+dependencies[] = ajax_markup
+dependencies[] = imce
+
+;Media
+dependencies[] = file_entity
+dependencies[] = media
+dependencies[] = media_wysiwyg
+dependencies[] = mediafield
+dependencies[] = media_internet
+
+dependencies[] = epsacrop
+
+dependencies[] = pp_crop
+dependencies[] = pp_admin
+
+dependencies[] = bean
+dependencies[] = bean_wysiwyg
+dependencies[] = pp_demo_beans
+
+; Pages
+dependencies[] = menu_block
+dependencies[] = slac_page
+
+;Blog
+dependencies[] = blog
+
+;Events
+dependencies[] = better_exposed_filters
+dependencies[] = field_redirection
+
+dependencies[] = pp_demo
+
+; Service catalog
+dependencies[] = support
+
+; Lightbox
+dependencies[] = pp_lightbox
+
+; Forms
+dependencies[] = slac_webform_botcha
+dependencies[] = slac_search
+
+; RSS
+dependencies[] = slac_rss_block
+
+;Features
+dependencies[] = default_site_template_io
+
+; Profile.
+dependencies[] = pp_profile
+dependencies[] = slac_profile
+dependencies[] = slac_user_profile
+
+; People listing
+dependencies[] = slac_people_listing
+
+;Landing page content type
+dependencies[] = landing_page
+
+; Panelized basic page settings
+dependencies[] = slac_basic_page_settings
+
+;Configurations
+dependencies[] = slac_configuration
+dependencies[] = slac_configurations
+
+;Custom modules
+dependencies[] = slac_site_variables
+dependencies[] = slac_share_block
+dependencies[] = slac_block_style
+dependencies[] = slac_profile_base
+dependencies[] = slac_people_slideshow
+dependencies[] = slac_mini_slideshow
+dependencies[] = slac_style_guide
+dependencies[] = slac_projects
+
+;Roles
+dependencies[] = slac_extorg_roles
+
+;Sidebar block
+dependencies[] = slac_sidebar_block
+dependencies[] = slac_sidebar_block_elements
+
+dependencies[] = slac_form_building
+
+dependencies[] = slac_blog
+;dependencies[] = slac_blog_demo
+
+dependencies[] = slac_faq
+;dependencies[] = slac_faq_demo
+
+dependencies[] = slac_kb_article
+;dependencies[] = slac_kb_demo
+
+dependencies[] = slac_news
+;dependencies[] = slac_news_demo
+
+dependencies[] = slac_event
+;dependencies[] = slac_event_demo
+
+dependencies[] = slac_service_catalog
+;dependencies[] = slac_service_catalog_demo
+;dependencies[] = slac_service_help
+
+dependencies[] = slac_forum
+;dependencies[] = slac_forum_demo
+
+dependencies[] = slac_wiki
+;dependencies[] = slac_wiki_demo
+
+dependencies[] = cami
+
+; Environment integration
+dependencies[] = webauth
+dependencies[] = slac_webauth_settings
+dependencies[] = slac_login_setting
+dependencies[] = slac_ldap_roles
+dependencies[] = slac_pt_notification
+
+; Moderation
+dependencies[] = workbench
+dependencies[] = workbench_moderation
+
+; Workbench settings
+dependencies[] = slac_workbench_settings_eo
+
+; Newsletter
+;dependencies[] = mailsystem
+;dependencies[] = simplenews
+;dependencies[] = htmlmail
+
+; Google analytics settings
+dependencies[] = slac_google_analytics
+
+; Special Menu
+;dependencies[] = header_menu
+
+dependencies[] = dblog
+
+; OG Tag Importing
+dependencies[] = og_tag_importer
+dependencies[] = slac_og_tag_importer
+
+;feeds deps
+dependencies[] = feeds
+dependencies[] = feed_generator
+dependencies[] = feeds_ui

@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function slac_sidebar_block_entity_info_alter(&$entity_info) {
+  $entity_info['fieldable_panels_pane']['bundles']['slac_sidebar_block'] = array(
+    'label' => t('Sidebar Block'),
+    'pane category' => t('SLAC panes'),
+    'pane top level' => TRUE, // set to true to make this show as a top level icon
+    'admin' => array(
+      'path' => 'admin/structure/fieldable-panels-panes/manage/%fieldable_panels_panes_type',
+      'bundle argument' => 4,
+      // Note that this has all _ replaced with - from the bundle name.
+      'real path' => 'admin/structure/fieldable-panels-panes/manage/slac-sidebar-block',
+      'access arguments' => array('administer fieldable panels panes'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+/*function slac_sidebar_block_entity_view_alter(&$build, $type) {
+  if ($type != 'fieldable_panels_pane') {
+    return;
+  }
+  if ($build['#bundle'] == 'slac_sidebar_block') {
+    $build['#theme'] = 'slac_sidebar_block_template';
+  }
+}*/
+
+/**
+ * Implements hook_theme().
+ */
+/*function slac_sidebar_block_theme() {
+  return array(
+    'slac_sidebar_block_block' => array(
+      'render element' => 'entity',
+      'template' => 'slac_sidebar_block_template',
+    ),
+  );
+}*/
+
+/**
+ * Preprocess function for slac_sidebar_block_template.tpl.php template.
+ */
+/*function slac_sidebar_block_preprocess_slac_sidebar_block_template(&$vars) {
+  if (!isset($vars['entity']['slac_sidebar_block'])) {
+    return;
+  }
+
+  //$projects_info = $vars['entity']['field_project_info'];
+
+  $item_values = array();
+
+
+  $vars['projects_list'] = $item_values;
+}*/

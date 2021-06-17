@@ -1,0 +1,51 @@
++at-breakpoint($less-than-320)
+
++at-breakpoint($less-than-480)
+
+  .pane-page-logo
+    //+span-columns(6,12)
+  .pane-system-user-menu
+    //+span-columns(6 omega,12)
+
+
+  .views-field-field-prf-contact-photo
+    float: left
+
+  .footer-seccond
+    background-color: $grey-87
+    color: #fff
+    +fontsize-rem(10px)
+    padding: 16px 0 7px
+
+    ul
+      +clearfix
+      border-top: 1px solid $grey-9
+      border-bottom: 1px solid $grey-9
+      display: block
+      padding-top: 8px
+      padding-bottom: 8px
+
+      li
+        float: left
+        margin-right: 4%
+        margin-bottom: 0
+        a
+          padding: 0 0 0 10px
+          background: none
+          &:before
+            content: "\e605"
+            +slac-font
+            position: absolute
+            +fontsize-rem(8px)
+            left: -1px
+            top: 2px
+
+          &:after
+            display: none
+        &:last-of-type
+          margin-right: 0
+
+
+
+
+
