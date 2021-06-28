@@ -141,3 +141,21 @@ if (defined('PANTHEON_ENVIRONMENT')) {
     }
   }
 }
+
+// Production settings
+$profile = "slac_int_org";
+$install_profile = "slac_int_org";
+$conf['install_profile'] = 'slac_int_org';
+$conf['clean_url'] = 1;
+$conf['aegir_api'] = 0;
+$conf["slac_site_owner"] = 'ramona';
+$conf["site_mail"] = 'noreply@slac.stanford.edu';
+
+# Extra configuration from modules:
+$conf["slac_role_mapping"] = array (
+  'administrator' => 'drupal-12132-administrator',
+  'manager' => 'drupal-12132-manager',
+  'editor' => 'drupal-12132-editor',
+  'site_member' => 'drupal-12132-site_member',
+  'author' => 'drupal-12132-author',
+);
