@@ -19,10 +19,10 @@ $cli = (php_sapi_name() === 'cli');
  */
 if (defined('PANTHEON_ENVIRONMENT')) {
   $variables = array (
-  'domains' => 
+  'domains' =>
   array (
     'canonical' => 'cryoem.slac.stanford.edu',
-    'synonyms' => 
+    'synonyms' =>
     array (
       0 => 'live-slac-cryoem-d7.pantheonsite.io',
     ),
@@ -142,14 +142,14 @@ if (defined('PANTHEON_ENVIRONMENT')) {
   }
 }
 
-// Production settings 
-
-  $profile = "slac_ext_org";
-  $install_profile = "slac_ext_org";
-  $conf['clean_url'] = 1;
-  $conf['aegir_api'] = 0;
-  $conf["slac_site_owner"] = 'jpham';
-  $conf["site_mail"] = 'noreply@slac.stanford.edu';
+// Production settings
+$profile = "slac_ext_org";
+$install_profile = "slac_ext_org";
+$conf['install_profile'] = 'slac_ext_org';
+$conf['clean_url'] = 1;
+$conf['aegir_api'] = 0;
+$conf["slac_site_owner"] = 'jpham';
+$conf["site_mail"] = 'noreply@slac.stanford.edu';
 
   # Extra configuration from modules:
 $conf["slac_role_mapping"] = array (
