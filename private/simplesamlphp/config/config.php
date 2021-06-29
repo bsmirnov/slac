@@ -130,7 +130,7 @@ $config = [
      *
      * See this page for a list of valid timezones: http://php.net/manual/en/timezones.php
      */
-    'timezone' => null,
+    'timezone' => 'America/Los_Angeles',
 
 
 
@@ -154,7 +154,7 @@ $config = [
      * metadata listing and diagnostics pages.
      * You can also put a hash here; run "bin/pwgen.php" to generate one.
      */
-    'auth.adminpassword' => '123',
+    'auth.adminpassword' => '833kquUC8Ew07z24*i2YoEX^X1h3Gq8T',
 
     /*
      * Set this options to true if you want to require administrator password to access the web interface
