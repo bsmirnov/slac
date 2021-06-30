@@ -43,7 +43,7 @@ $config = [
      * external url, no matter where you come from (direct access or via the
      * reverse proxy).
      */
-    'baseurlpath' => 'https://'. $host .':443/simplesaml/', // SAML should always connect via 443
+    'baseurlpath' => 'https://' . $host . '/simplesaml/',
 
     /*
      * The 'application' configuration array groups a set configuration options
