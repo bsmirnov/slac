@@ -88,8 +88,8 @@ $config = [
      * The email address will be used as the recipient address for error reports, and
      * also as the technical contact in generated metadata.
      */
-    'technicalcontact_name' => 'Administrator',
-    'technicalcontact_email' => 'na@example.org',
+    'technicalcontact_name' => 'Mike Fuerstnau',
+    'technicalcontact_email' => 'mike.fuerstnau@mediacurrent.com',
 
     /*
      * (Optional) The method by which email is delivered.  Defaults to mail which utilizes the
@@ -146,7 +146,7 @@ $config = [
      * A possible way to generate a random salt is by running the following command from a unix shell:
      * LC_CTYPE=C tr -c -d '0123456789abcdefghijklmnopqrstuvwxyz' </dev/urandom | dd bs=32 count=1 2>/dev/null;echo
      */
-    'secretsalt' => 'defaultsecretsalt',
+    'secretsalt' => 'ng6n7igaqv1z70xeq3ahx5cn2lt9egof',
 
     /*
      * This password must be kept secret, and modified from the default value 123.
@@ -478,7 +478,7 @@ $config = [
      *
      * Note that shib13-idp has been deprecated and will be removed in SimpleSAMLphp 2.0.
      */
-    'enable.saml20-idp' => false,
+    'enable.saml20-idp' => true,
     'enable.shib13-idp' => false,
     'enable.adfs-idp' => false,
 
