@@ -1040,11 +1040,10 @@ $config = [
      * Both Shibboleth and SAML 2.0
      */
     'authproc.sp' => [
-        /*
         10 => [
-            'class' => 'core:AttributeMap', 'removeurnprefix'
+            'class' => 'core:AttributeMap',
+            'oid2name'
         ],
-        */
 
         /*
          * Generate the 'group' attribute populated from other variables, including eduPersonAffiliation.

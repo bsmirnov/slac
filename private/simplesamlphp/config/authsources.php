@@ -36,6 +36,8 @@ $config = [
         'idp' => 'https://adfs.slac.stanford.edu/adfs/services/trust',
         'privatekey' => 'saml.pem',
         'certificate' => 'saml.crt',
+        'redirect.sign' => TRUE,
+        'redirect.validate' => TRUE,
 
         // The URL to the discovery service.
         // Can be NULL/unset, in which case a builtin discovery service will be used.
