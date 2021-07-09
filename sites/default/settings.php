@@ -39,6 +39,3 @@ $conf['cache_backends'][] = 'sites/all/modules/contrib/d8cache/d8cache-ac.cache.
 $conf['cache_class_cache_views_data'] = 'D8CacheAttachmentsCollector';
 $conf['cache_class_cache_block'] = 'D8CacheAttachmentsCollector';
 $conf['cache_class_cache_page'] = 'D8Cache';
-
-# Provide universal absolute path to the installation.
-$conf['simplesamlphp_auth_installdir'] = $_ENV['HOME'] .'/code/private/simplesamlphp';
