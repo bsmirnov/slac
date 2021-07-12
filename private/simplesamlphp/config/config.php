@@ -11,7 +11,6 @@ if (!ini_get('session.save_handler')) {
     ini_set('session.save_handler', 'file');
 }
 
-$host = $_SERVER['HTTP_HOST'];
 $db = [
     'host'      => $_ENV['DB_HOST'],
     'database'  => $_ENV['DB_NAME'],
@@ -19,6 +18,10 @@ $db = [
     'password'  => $_ENV['DB_PASSWORD'],
     'port'      => $_ENV['DB_PORT'],
 ];
+
+$_SERVER['SERVER_PORT'] = 443;
+$_SERVER['HTTPS'] = 'true';
+$port = ':' . $_SERVER['SERVER_PORT'];
 
 $config = [
 
@@ -43,7 +46,7 @@ $config = [
      * external url, no matter where you come from (direct access or via the
      * reverse proxy).
      */
-    'baseurlpath' => 'https://' . $host . ':443/simplesaml/',
+    'baseurlpath' => 'https://' . $_SERVER['HTTP_HOST'] . $port . '/simplesaml/',
 
     /*
      * The 'application' configuration array groups a set configuration options
