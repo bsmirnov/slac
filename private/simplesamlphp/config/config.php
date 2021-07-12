@@ -43,7 +43,7 @@ $config = [
      * external url, no matter where you come from (direct access or via the
      * reverse proxy).
      */
-    'baseurlpath' => 'https://' . $host . '/simplesaml/',
+    'baseurlpath' => 'https://' . $host . ':443/simplesaml/',
 
     /*
      * The 'application' configuration array groups a set configuration options
