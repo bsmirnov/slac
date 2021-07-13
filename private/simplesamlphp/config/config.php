@@ -1047,6 +1047,13 @@ $config = [
             'class' => 'core:AttributeMap',
             'oid2name'
         ],
+        // uid is not included in the response as a separate attribute. Since
+        // the stanford_ssp module depends on it, we set uid as
+        // eduPersonPrincipalName.
+        50 => [
+            'class' => 'core:AttributeCopy',
+            'eduPersonPrincipalName' => 'uid',
+        ],
 
         /*
          * Generate the 'group' attribute populated from other variables, including eduPersonAffiliation.
