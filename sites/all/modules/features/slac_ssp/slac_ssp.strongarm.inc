@@ -112,7 +112,7 @@ function slac_ssp_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'stanford_ssp_auth_role_map';
-  $strongarm->value = 'grant';
+  $strongarm->value = 'reassign';
   $export['stanford_ssp_auth_role_map'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -161,14 +161,14 @@ function slac_ssp_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'stanford_ssp_show_local_login';
-  $strongarm->value = TRUE;
+  $strongarm->value = 0;
   $export['stanford_ssp_show_local_login'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'stanford_ssp_show_sso_login';
-  $strongarm->value = TRUE;
+  $strongarm->value = '1';
   $export['stanford_ssp_show_sso_login'] = $strongarm;
 
   $strongarm = new stdClass();
