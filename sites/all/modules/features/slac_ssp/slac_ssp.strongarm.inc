@@ -174,6 +174,13 @@ function slac_ssp_strongarm() {
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
+  $strongarm->name = 'stanford_ssp_sso_link_text';
+  $strongarm->value = 'Log in with your SLAC ID »';
+  $export['stanford_ssp_sso_link_text'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
   $strongarm->name = 'stanford_ssp_workgroup_api_cert';
   $strongarm->value = '/etc/pki/tls/certs/stanford_ssp.cert';
   $export['stanford_ssp_workgroup_api_cert'] = $strongarm;

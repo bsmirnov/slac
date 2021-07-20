@@ -33,5 +33,6 @@ features[variable][] = stanford_ssp_redirect_on_login
 features[variable][] = stanford_ssp_role_map_source
 features[variable][] = stanford_ssp_show_local_login
 features[variable][] = stanford_ssp_show_sso_login
+features[variable][] = stanford_ssp_sso_link_text
 features[variable][] = stanford_ssp_workgroup_api_cert
 features[variable][] = stanford_ssp_workgroup_api_key
