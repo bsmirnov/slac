@@ -184,7 +184,8 @@ function stanford_ssp_init() {
     // If the site is marked internal, redirect anonymous users to
     // SLAC login. 'goto' parameter tells this module where to send
     // users after Drupal login.
-    if (variable_get('stanford_ssp_is_internal', FALSE)) {
+    $bp = base_path();
+    if (variable_get('stanford_ssp_is_internal', FALSE) && $bp != '/sso/login/') {
       drupal_goto("sso/login", array('query' => array('goto' => base_path())), '302');
     }
     return;
