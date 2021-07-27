@@ -176,6 +176,12 @@ function stanford_ssp_redirect() {
  * Tried to use hook boot but too few api functions were available.
  */
 function stanford_ssp_init() {
+  // Don't act on drush requests. It causes an error with the
+  // drupal_goto() below. See
+  // https://www.drupal.org/project/drush/issues/1230132
+  if (php_sapi_name() == 'cli') {
+    return;
+  }
 
   // If the user is anonymous then end the journey.
   // We don't worry about those suckers.
