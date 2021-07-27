@@ -97,6 +97,13 @@ function stanford_ssp_configuration_form(array $form, array &$form_state) {
     '#description' => t("If your SP configuration reformats entitlements (e.g. stanford:stanford to stanford_stanford), enable this option."),
   );
 
+  $form['general-config']['stanford_ssp_is_internal'] = array(
+    '#type' => 'switch',
+    '#title' => t('Internal site'),
+    '#default_value' => variable_get('stanford_ssp_is_internal', FALSE),
+    '#description' => t("Internal sites require users to login first. Enabling this will redirect all anonymous users to the SSO login."),
+  );
+
   $form['general-config']['stanford_ssp_redirect_on_login'] = array(
     '#type' => 'textfield',
     '#title' => t('Redirect all users on successful login to this url.'),

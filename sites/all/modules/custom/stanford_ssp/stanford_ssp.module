@@ -181,6 +181,12 @@ function stanford_ssp_init() {
   // We don't worry about those suckers.
   $anon = user_is_anonymous();
   if ($anon) {
+    // If the site is marked internal, redirect anonymous users to
+    // SLAC login. 'goto' parameter tells this module where to send
+    // users after Drupal login.
+    if (variable_get('stanford_ssp_is_internal', FALSE)) {
+      drupal_goto("sso/login", array('query' => array('goto' => base_path())), '302');
+    }
     return;
   }
 
