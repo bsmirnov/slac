@@ -29,7 +29,6 @@ features[variable][] = stanford_ssp_automagic_login
 features[variable][] = stanford_ssp_force_https
 features[variable][] = stanford_ssp_format_entitlements
 features[variable][] = stanford_ssp_prevent_cache
-features[variable][] = stanford_ssp_redirect_on_login
 features[variable][] = stanford_ssp_role_map_source
 features[variable][] = stanford_ssp_show_local_login
 features[variable][] = stanford_ssp_show_sso_login

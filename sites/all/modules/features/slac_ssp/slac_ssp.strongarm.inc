@@ -146,13 +146,6 @@ function slac_ssp_strongarm() {
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
-  $strongarm->name = 'stanford_ssp_redirect_on_login';
-  $strongarm->value = '';
-  $export['stanford_ssp_redirect_on_login'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
   $strongarm->name = 'stanford_ssp_role_map_source';
   $strongarm->value = 'entitlement';
   $export['stanford_ssp_role_map_source'] = $strongarm;
