@@ -187,7 +187,7 @@ function stanford_ssp_init() {
   // users after Drupal login.
   $cp = current_path();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
-  if (variable_get('stanford_ssp_is_internal', FALSE) && !$saml['source']->isAuthenticated()) {
+  if (variable_get('stanford_ssp_is_internal', FALSE) && (!isset($saml['source']) || !$saml['source']->isAuthenticated())) {
     drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
   }
 
