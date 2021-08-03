@@ -182,18 +182,19 @@ function stanford_ssp_init() {
   if (php_sapi_name() == 'cli') {
     return;
   }
+  // If the site is marked internal, redirect unauthenticated users to
+  // SLAC login. 'goto' parameter tells this module where to send
+  // users after Drupal login.
+  $cp = current_path();
+  $saml = stanford_simplesamlphp_auth_get_saml_info();
+  if (variable_get('stanford_ssp_is_internal', FALSE) && !$saml['source']->isAuthenticated()) {
+    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
+  }
 
   // If the user is anonymous then end the journey.
   // We don't worry about those suckers.
   $anon = user_is_anonymous();
   if ($anon) {
-    // If the site is marked internal, redirect anonymous users to
-    // SLAC login. 'goto' parameter tells this module where to send
-    // users after Drupal login.
-    $cp = current_path();
-    if (variable_get('stanford_ssp_is_internal', FALSE) && $cp != 'sso/login') {
-      drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
-    }
     return;
   }
 
