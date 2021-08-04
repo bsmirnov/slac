@@ -185,13 +185,13 @@ function stanford_ssp_init() {
   // If the site is marked internal, redirect unauthenticated users to
   // SLAC login. 'goto' parameter tells this module where to send
   // users after Drupal login.
-  module_load_include('inc', 'stanford_simplesamlphp_auth');
+  stanford_simplesamlphp_auth_autoload();
   $cp = current_path();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
+  watchdog('stanford_ssp', '$saml var: %v', ['%v' => print_r($saml, true)]);
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
      (!isset($saml['source']) || !$saml['source']->isAuthenticated()) &&
       $cp != 'sso/login') {
-    watchdog('stanford_ssp', '$saml var: %v', ['%v' => print_r($saml, true)]);
     drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
   }
 
