@@ -190,8 +190,8 @@ function stanford_ssp_init() {
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
      (!isset($saml['source']) || !$saml['source']->isAuthenticated()) &&
       $cp != 'sso/login') {
-    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
     watchdog('stanford_ssp', '%v', ['%v' => print_r($saml, true)]);
+    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
   }
 
   // If the user is anonymous then end the journey.
