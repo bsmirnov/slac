@@ -1,0 +1,31 @@
+{
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.drupal.org/7"
+    }
+  ],
+  "require": {
+    "fastglass/sendgrid": "~1.0"
+  },
+  "extra": {
+    "installer-paths": {
+      "sites/all/modules/contrib/{$name}/": ["type:drupal-module"],
+      "sites/all/modules/custom/{$name}/": ["type:drupal-module"],
+      "sites/all/themes/{$name}/": ["type:drupal-theme"],
+      "sites/all/libraries/{$name}/": ["type:drupal-library"]
+    }
+  },
+  "scripts": {
+    "remove-git-submodules": "find . -mindepth 2 -type d -name .git | xargs rm -rf",
+    "post-install-cmd": [
+      "@remove-git-submodules"
+    ],
+    "post-update-cmd": [
+      "@remove-git-submodules"
+    ]
+  },
+  "config": {
+    "vendor-dir": "sites/all/vendor"
+  }
+}
