@@ -292,14 +292,10 @@ function stanford_ssp_sso_auth() {
 function stanford_ssp_sso_auth_logout() {
   $saml = stanford_simplesamlphp_auth_get_saml_info();
 
-  $gotourl = base_path();
-  if (variable_get('simplesamlphp_auth_logoutgotourl', '')) {
-    $gotourl = variable_get('simplesamlphp_auth_logoutgotourl', '');
+  if (!empty($saml['attributes'])) {
+    return $saml['source']->logout('/user/login');
   }
-  if (isset($saml['source']) && $saml['source']->isAuthenticated()) {
-    return $saml['source']->logout($gotourl);
-  }
-  drupal_goto("/");
+  drupal_goto('/user/login');
 }
 
 /**
