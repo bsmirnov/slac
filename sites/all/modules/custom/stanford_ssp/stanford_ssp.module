@@ -189,6 +189,7 @@ function stanford_ssp_init() {
   $cp = current_path();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
   watchdog('stanford_ssp', '$saml var: %v', ['%v' => print_r($saml, true)]);
+  watchdog('stanford_ssp', '$cp var: %v', ['%v' => print_r($cp, true)]);
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
      (!isset($saml['source']) || !$saml['source']->isAuthenticated()) &&
       $cp != 'sso/login') {
@@ -210,6 +211,42 @@ function stanford_ssp_init() {
     header("Cache-Control: no-store, no-cache, must-revalidate");
   }
 
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function stanford_ssp_block_info() {
+  $blocks = [];
+
+  $blocks['slac_user'] = [
+    'info' => t('Slac user'),
+    'cache' => DRUPAL_NO_CACHE,
+  ];
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function stanford_ssp_block_view($delta = '') {
+  $block = [];
+  switch ($delta) {
+    case 'slac_user':
+      $params = [
+        'attributes' => [
+          'rel' => 'nofollow',
+        ],
+      ];
+
+      $block = [
+        'subject' => t('Slac user'),
+        'content' => l('SLAC Log out', 'sso/logout', $params),
+      ];
+      break;
+  }
+  return $block;
 }
 
 /**
