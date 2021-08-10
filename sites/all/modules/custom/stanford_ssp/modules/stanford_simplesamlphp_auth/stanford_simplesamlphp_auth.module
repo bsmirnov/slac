@@ -190,15 +190,6 @@ function stanford_simplesamlphp_auth_user_logout($account) {
     // KLUDGE: for some reason Drupal is not killing the session, even if I
     // were to call drupal_session_destroy_uid() here.
     session_destroy();
-
-    $gotourl = base_path();
-    if (variable_get('simplesamlphp_auth_logoutgotourl', '')) {
-      $gotourl = variable_get('simplesamlphp_auth_logoutgotourl', '');
-    }
-    // Log out of the SLAC IdP only for external sites.
-    if (!variable_get('stanford_ssp_is_internal', FALSE)) {
-      $source->logout($gotourl);
-    }
   }
 
 }

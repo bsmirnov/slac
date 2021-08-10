@@ -24,6 +24,19 @@ function stanford_ssp_menu() {
     ],
   );
 
+  $items['sso/logout'] = array(
+    'title' => "Stanford SSO Authentication Log out",
+    'description' => "Authentication endpoint to send a log out request to the IdP.",
+    'page callback' => 'stanford_ssp_sso_auth_logout',
+    'access callback' => TRUE,
+    'type' => MENU_SUGGESTED_ITEM,
+    'options' => [
+      'attributes' => [
+        'rel' => 'nofollow',
+      ],
+    ],
+  );
+
   $items['sso/denied-test'] = array(
     'title' => "Always denied",
     'description' => "Authentication endpoint test.",
@@ -270,6 +283,22 @@ function stanford_ssp_sso_auth() {
   stanford_simplesamlphp_auth_loginpage();
 
   return $output;
+}
+
+/**
+ * Logs out a user from Slac authentication.
+ */
+function stanford_ssp_sso_auth_logout() {
+  $saml = stanford_simplesamlphp_auth_get_saml_info();
+
+  $gotourl = base_path();
+  if (variable_get('simplesamlphp_auth_logoutgotourl', '')) {
+    $gotourl = variable_get('simplesamlphp_auth_logoutgotourl', '');
+  }
+  if (isset($saml['source']) && $saml['source']->isAuthenticated()) {
+    return $saml['source']->logout($gotourl);
+  }
+  drupal_goto("/")
 }
 
 /**
