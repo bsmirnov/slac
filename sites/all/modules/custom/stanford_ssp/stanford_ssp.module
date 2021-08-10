@@ -214,39 +214,12 @@ function stanford_ssp_init() {
 }
 
 /**
- * Implements hook_block_info().
+ * Implements hook_ctools_plugin_directory().
  */
-function stanford_ssp_block_info() {
-  $blocks = [];
-
-  $blocks['slac_user'] = [
-    'info' => t('Slac user'),
-    'cache' => DRUPAL_NO_CACHE,
-  ];
-
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function stanford_ssp_block_view($delta = '') {
-  $block = [];
-  switch ($delta) {
-    case 'slac_user':
-      $params = [
-        'attributes' => [
-          'rel' => 'nofollow',
-        ],
-      ];
-
-      $block = [
-        'subject' => t('Slac user'),
-        'content' => l('SLAC Log out', 'sso/logout', $params),
-      ];
-      break;
+function stanford_ssp_ctools_plugin_directory($module, $plugin) {
+  if ($module === 'ctools') {
+    return 'plugins/' . $plugin;
   }
-  return $block;
 }
 
 /**
