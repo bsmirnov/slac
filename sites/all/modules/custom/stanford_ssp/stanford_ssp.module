@@ -298,7 +298,7 @@ function stanford_ssp_sso_auth_logout() {
   if (isset($saml['source']) && $saml['source']->isAuthenticated()) {
     return $saml['source']->logout($gotourl);
   }
-  drupal_goto("/")
+  drupal_goto("/");
 }
 
 /**
