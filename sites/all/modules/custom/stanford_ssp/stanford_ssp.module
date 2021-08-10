@@ -201,6 +201,7 @@ function stanford_ssp_init() {
   $cp = current_path();
   watchdog('stanford_ssp', 'stanford_simplesamlphp_auth_is_authenticated() var: %v', ['%v' => print_r(stanford_simplesamlphp_auth_is_authenticated(), true)]);
   watchdog('stanford_ssp', '$cp var: %v', ['%v' => print_r($cp, true)]);
+  module_load_include("inc", "stanford_simplesamlphp_auth", "stanford_simplesamlphp_auth");
   drupal_static_reset('stanford_simplesamlphp_auth_autoload');
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
       !stanford_simplesamlphp_auth_is_authenticated() &&
