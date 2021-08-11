@@ -18,7 +18,7 @@ $plugin = [
 function stanford_ssp_slac_user_access_check($config, $context) {
   stanford_simplesamlphp_auth_autoload();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
-  return user_is_anonymous() && isset($saml['source']) && $saml['source']->isAuthenticated();
+  return user_is_anonymous() && !empty($saml['attributes']);
 }
 
 /**
