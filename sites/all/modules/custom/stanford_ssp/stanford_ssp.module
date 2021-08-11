@@ -199,14 +199,16 @@ function stanford_ssp_init() {
   // SLAC login. 'goto' parameter tells this module where to send
   // users after Drupal login.
   $cp = current_path();
-  watchdog('stanford_ssp', 'stanford_simplesamlphp_auth_is_authenticated() var: %v', ['%v' => print_r(stanford_simplesamlphp_auth_is_authenticated(), true)]);
-  watchdog('stanford_ssp', '$cp var: %v', ['%v' => print_r($cp, true)]);
   drupal_static_reset('stanford_simplesamlphp_auth_autoload');
   stanford_simplesamlphp_auth_autoload();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
       empty($saml['attributes']) &&
-      $cp != 'sso/login') {
+      $cp != 'sso/login')
+  {
+    // Logout of Drupal first. This prevents a redirect loop that occurs when the Drupal
+    // session is still valid, but the Slac session is not, e.g. from closing the browser.
+    session_destroy();
     drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
   }
 
@@ -293,6 +295,9 @@ function stanford_ssp_sso_auth_logout() {
   $saml = stanford_simplesamlphp_auth_get_saml_info();
 
   if (!empty($saml['attributes'])) {
+    // Logout of Drupal first.
+    session_destroy();
+    // Logout of Slac.
     return $saml['source']->logout('/user/login?logout_time=' . time());
   }
   drupal_goto('/user/login');
