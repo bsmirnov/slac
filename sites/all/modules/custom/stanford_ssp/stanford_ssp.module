@@ -293,7 +293,7 @@ function stanford_ssp_sso_auth_logout() {
   $saml = stanford_simplesamlphp_auth_get_saml_info();
 
   if (!empty($saml['attributes'])) {
-    return $saml['source']->logout('/user/login');
+    return $saml['source']->logout('/user/login?logout_time=' . time());
   }
   drupal_goto('/user/login');
 }
