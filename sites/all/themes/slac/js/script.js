@@ -276,7 +276,7 @@
           var status = JSON.parse(this.response);
           // Add the logout link.
           if (status) {
-            $(this.el).append('<div class="slac-logout"><a href="/sso/logout" class="slac-logout-link">SLAC Log Out</a></div>');
+            $(this.el).append('<div class="slac-logout"><a href="/sso/logout" rel="nofollow" class="slac-logout-link" style="color: white;">SLAC Log Out</a></div>');
           }
         }
 
