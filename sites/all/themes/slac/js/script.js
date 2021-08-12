@@ -265,4 +265,23 @@
     }
   };
 
+  Drupal.behaviors.showSlacLogout = {
+    attach: function (context, settings) {
+      $('.pane-search-block', context).once('show-slac-logout', function () {
+        var request = new XMLHttpRequest();
+        request.open('GET', '/sso/status', true);
+        request.onload = function () {
+          // Begin accessing JSON data here
+          var status = JSON.parse(this.response);
+          // Add the logout link.
+          if (status) {
+            $(this).append('<div class="slac-logout"><a href="/sso/logout" class="slac-logout-link">SLAC Log Out</a></div>');
+          }
+        }
+
+        request.send();
+      });
+    }
+  };
+
 }(this, this.document, this.jQuery, this.Drupal));
