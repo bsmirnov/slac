@@ -236,15 +236,6 @@ function stanford_ssp_init() {
 }
 
 /**
- * Implements hook_ctools_plugin_directory().
- */
-function stanford_ssp_ctools_plugin_directory($module, $plugin) {
-  if ($module === 'ctools') {
-    return 'plugins/' . $plugin;
-  }
-}
-
-/**
  * Implements hook_user_login().
  */
 function stanford_ssp_user_login() {
