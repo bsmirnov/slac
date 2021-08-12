@@ -267,7 +267,7 @@
 
   Drupal.behaviors.showSlacLogout = {
     attach: function (context, settings) {
-      $('.header-wrapper', context).once('show-slac-logout', function () {
+      $('.pane-search-block', context).once('show-slac-logout', function () {
         var request = new XMLHttpRequest();
         request.el = this
         request.open('GET', '/sso/status', true);
@@ -276,7 +276,7 @@
           var status = JSON.parse(this.response);
           // Add the logout link.
           if (status) {
-            $(this.el).append('<div class="slac-logout"><a href="/sso/logout" rel="nofollow" class="slac-logout-link" style="color: white;">SLAC Log Out</a></div>');
+            $(this.el).append('<div class="pane-system-user-menu"><ul><li><a href="/sso/logout" rel="nofollow" class="slac-logout-link">SLAC Log Out</a></li></ul></div>');
           }
         }
 
