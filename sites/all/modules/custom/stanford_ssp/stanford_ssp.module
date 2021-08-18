@@ -201,20 +201,21 @@ function stanford_ssp_init() {
   if (php_sapi_name() == 'cli') {
     return;
   }
-  // If the site is marked internal, redirect unauthenticated users to
-  // SLAC login. 'goto' parameter tells this module where to send
-  // users after Drupal login.
   $cp = current_path();
   drupal_static_reset('stanford_simplesamlphp_auth_autoload');
   stanford_simplesamlphp_auth_autoload();
   $saml = stanford_simplesamlphp_auth_get_saml_info();
+  // Log the user out of Drupal if the Slac session is no longer valid.
+  if (user_is_logged_in() && empty($saml['attributes'])) {
+    session_destroy();
+  }
+  // If the site is marked internal, redirect unauthenticated users to
+  // SLAC login. 'goto' parameter tells this module where to send
+  // users after Drupal login.
   if (variable_get('stanford_ssp_is_internal', FALSE) &&
       empty($saml['attributes']) &&
       $cp != 'sso/login')
   {
-    // Logout of Drupal first. This prevents a redirect loop that occurs when the Drupal
-    // session is still valid, but the Slac session is not, e.g. from closing the browser.
-    session_destroy();
     drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
   }
 
