@@ -1,0 +1,170 @@
+diff --git b/sites/all/modules/custom/stanford_ssp/modules/stanford_simplesamlphp_auth/stanford_simplesamlphp_auth.module a/sites/all/modules/custom/stanford_ssp/modules/stanford_simplesamlphp_auth/stanford_simplesamlphp_auth.module
+index 40cc5f3..1ee47b5 100644
+--- b/sites/all/modules/custom/stanford_ssp/modules/stanford_simplesamlphp_auth/stanford_simplesamlphp_auth.module
++++ a/sites/all/modules/custom/stanford_ssp/modules/stanford_simplesamlphp_auth/stanford_simplesamlphp_auth.module
+@@ -190,13 +190,6 @@ function stanford_simplesamlphp_auth_user_logout($account) {
+     // KLUDGE: for some reason Drupal is not killing the session, even if I
+     // were to call drupal_session_destroy_uid() here.
+     session_destroy();
+-
+-    $gotourl = base_path();
+-    if (variable_get('simplesamlphp_auth_logoutgotourl', '')) {
+-      $gotourl = variable_get('simplesamlphp_auth_logoutgotourl', '');
+-    }
+-
+-    $source->logout($gotourl);
+   }
+ 
+ }
+diff --git b/sites/all/modules/custom/stanford_ssp/stanford_ssp.admin.inc a/sites/all/modules/custom/stanford_ssp/stanford_ssp.admin.inc
+index 457b31e..1e9a7f9 100644
+--- b/sites/all/modules/custom/stanford_ssp/stanford_ssp.admin.inc
++++ a/sites/all/modules/custom/stanford_ssp/stanford_ssp.admin.inc
+@@ -97,6 +97,13 @@ function stanford_ssp_configuration_form(array $form, array &$form_state) {
+     '#description' => t("If your SP configuration reformats entitlements (e.g. stanford:stanford to stanford_stanford), enable this option."),
+   );
+ 
++  $form['general-config']['stanford_ssp_is_internal'] = array(
++    '#type' => 'switch',
++    '#title' => t('Internal site'),
++    '#default_value' => variable_get('stanford_ssp_is_internal', FALSE),
++    '#description' => t("Internal sites require users to login first. Enabling this will redirect all anonymous users to the SSO login."),
++  );
++
+   $form['general-config']['stanford_ssp_redirect_on_login'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Redirect all users on successful login to this url.'),
+diff --git b/sites/all/modules/custom/stanford_ssp/stanford_ssp.install a/sites/all/modules/custom/stanford_ssp/stanford_ssp.install
+index 63fb939..32c61e5 100644
+--- b/sites/all/modules/custom/stanford_ssp/stanford_ssp.install
++++ a/sites/all/modules/custom/stanford_ssp/stanford_ssp.install
+@@ -31,26 +31,6 @@ function stanford_ssp_install() {
+   variable_set('stanford_ssp_show_local_login', TRUE);
+   variable_set('stanford_ssp_show_sso_login', TRUE);
+ 
+-  // Add default roles.
+-  $roles = array(
+-    'SSO User',
+-    'Stanford Student',
+-    'Stanford Staff',
+-    'Stanford Faculty',
+-  );
+-
+-  foreach ($roles as $role) {
+-    $role_exists = (bool) db_query("SELECT COUNT(*) FROM {role} WHERE name = :name", array(':name' => $role))->fetchField();
+-    if (!$role_exists) {
+-      db_insert('role')
+-        ->fields(array(
+-          'name' => $role,
+-        ))
+-        ->execute();
+-      drupal_set_message($t('Added Role @role', array('@role' => $role)));
+-    }
+-  }
+-
+ }
+ 
+ /**
+diff --git b/sites/all/modules/custom/stanford_ssp/stanford_ssp.module a/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
+index 264be8c..6706e63 100644
+--- b/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
++++ a/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
+@@ -15,7 +15,7 @@ function stanford_ssp_menu() {
+     'title' => "Stanford SSO Authentication Endpoint",
+     'description' => "Authentication endpoint.",
+     'page callback' => 'stanford_ssp_sso_auth',
+-    'access callback' => "stanford_ssp_access_login_page",
++    'access callback' => TRUE,
+     'type' => MENU_SUGGESTED_ITEM,
+     'options' => [
+       'attributes' => [
+@@ -24,6 +24,25 @@ function stanford_ssp_menu() {
+     ],
+   );
+ 
++  $items['sso/logout'] = [
++    'title' => "Stanford SSO Authentication Log out",
++    'description' => "Authentication endpoint to send a log out request to the IdP.",
++    'page callback' => 'stanford_ssp_sso_auth_logout',
++    'access callback' => TRUE,
++    'type' => MENU_SUGGESTED_ITEM,
++    'options' => [
++      'attributes' => [
++        'rel' => 'nofollow',
++      ],
++    ],
++  ];
++
++  $items['sso/status'] = [
++    'page callback' => 'stanford_ssp_sso_status',
++    'access callback' => TRUE,
++    'type' => MENU_CALLBACK,
++  ];
++
+   $items['sso/denied-test'] = array(
+     'title' => "Always denied",
+     'description' => "Authentication endpoint test.",
+@@ -176,6 +195,29 @@ function stanford_ssp_redirect() {
+  * Tried to use hook boot but too few api functions were available.
+  */
+ function stanford_ssp_init() {
++  // Don't act on drush requests. It causes an error with the
++  // drupal_goto() below. See
++  // https://www.drupal.org/project/drush/issues/1230132
++  if (php_sapi_name() == 'cli') {
++    return;
++  }
++  $cp = current_path();
++  drupal_static_reset('stanford_simplesamlphp_auth_autoload');
++  stanford_simplesamlphp_auth_autoload();
++  $saml = stanford_simplesamlphp_auth_get_saml_info();
++  // Log the user out of Drupal if the Slac session is no longer valid.
++  if (user_is_logged_in() && empty($saml['attributes'])) {
++    session_destroy();
++  }
++  // If the site is marked internal, redirect unauthenticated users to
++  // SLAC login. 'goto' parameter tells this module where to send
++  // users after Drupal login.
++  if (variable_get('stanford_ssp_is_internal', FALSE) &&
++      empty($saml['attributes']) &&
++      $cp != 'sso/login')
++  {
++    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
++  }
+ 
+   // If the user is anonymous then end the journey.
+   // We don't worry about those suckers.
+@@ -244,6 +286,33 @@ function stanford_ssp_sso_auth() {
+   return $output;
+ }
+ 
++/**
++ * Logs out a user from Slac authentication.
++ */
++function stanford_ssp_sso_auth_logout() {
++  $saml = stanford_simplesamlphp_auth_get_saml_info();
++
++  if (!empty($saml['attributes'])) {
++    // Logout of Drupal first.
++    session_destroy();
++    // Logout of Slac.
++    return $saml['source']->logout('/user/login?logout_time=' . time());
++  }
++  drupal_goto('/user/login');
++}
++
++/**
++ * Callback for sso/status.
++ *
++ * Returns true if a user is anonymous to Drupal, but logged into Slac.
++ */
++function stanford_ssp_sso_status() {
++  drupal_page_is_cacheable(FALSE);
++  $saml = stanford_simplesamlphp_auth_get_saml_info();
++  $data = user_is_anonymous() && !empty($saml['attributes']);
++  return drupal_json_output($data);
++}
++
+ /**
+  * Enforces the use https configuration setting.
+  *
