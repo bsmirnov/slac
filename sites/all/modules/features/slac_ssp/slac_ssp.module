@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the SLAC SSP feature.
+ */
+
+include_once 'slac_ssp.features.inc';
