@@ -296,7 +296,7 @@ function stanford_ssp_sso_auth_logout() {
     // Logout of Drupal first.
     session_destroy();
     // Logout of Slac.
-    return $saml['source']->logout('/user/login?logout_time=' . time());
+    return $saml['source']->logout();
   }
   drupal_goto('/user/login');
 }

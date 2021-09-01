@@ -163,7 +163,7 @@ $config = [
      * Set this options to true if you want to require administrator password to access the web interface
      * or the metadata pages, respectively.
      */
-    'admin.protectindexpage' => false,
+    'admin.protectindexpage' => true,
     'admin.protectmetadata' => false,
 
     /*
