@@ -66,7 +66,7 @@ index 63fb939..32c61e5 100644
  
  /**
 diff --git b/sites/all/modules/custom/stanford_ssp/stanford_ssp.module a/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
-index 264be8c..6706e63 100644
+index 264be8c..fc70a0c 100644
 --- b/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
 +++ a/sites/all/modules/custom/stanford_ssp/stanford_ssp.module
 @@ -15,7 +15,7 @@ function stanford_ssp_menu() {
@@ -104,37 +104,53 @@ index 264be8c..6706e63 100644
    $items['sso/denied-test'] = array(
      'title' => "Always denied",
      'description' => "Authentication endpoint test.",
-@@ -176,6 +195,29 @@ function stanford_ssp_redirect() {
+@@ -176,12 +195,39 @@ function stanford_ssp_redirect() {
   * Tried to use hook boot but too few api functions were available.
   */
  function stanford_ssp_init() {
+-
+-  // If the user is anonymous then end the journey.
+-  // We don't worry about those suckers.
+-  $anon = user_is_anonymous();
+-  if ($anon) {
+-    return;
 +  // Don't act on drush requests. It causes an error with the
 +  // drupal_goto() below. See
 +  // https://www.drupal.org/project/drush/issues/1230132
-+  if (php_sapi_name() == 'cli') {
-+    return;
-+  }
++  // Also, Pantheon strips cookies for certain file extensions to improve
++  // performance. This can cause trouble with generating image styles
++  // since the request will come across anonymous. Ignore these
++  // type of requests. See
++  // https://pantheon.io/docs/caching-advanced-topics#file-suffixes-and-cookies
 +  $cp = current_path();
-+  drupal_static_reset('stanford_simplesamlphp_auth_autoload');
-+  stanford_simplesamlphp_auth_autoload();
-+  $saml = stanford_simplesamlphp_auth_get_saml_info();
-+  // Log the user out of Drupal if the Slac session is no longer valid.
-+  if (user_is_logged_in() && empty($saml['attributes'])) {
-+    session_destroy();
-+  }
-+  // If the site is marked internal, redirect unauthenticated users to
-+  // SLAC login. 'goto' parameter tells this module where to send
-+  // users after Drupal login.
-+  if (variable_get('stanford_ssp_is_internal', FALSE) &&
++  $ext = pathinfo($cp, PATHINFO_EXTENSION);
++  $allow = array('png', 'gif', 'jpeg', 'jpg',
++                 'ico', 'bmp', 'tif', 'tiff',
++                 'webp', 'swf', 'css', 'js',
++                 'woff', 'woff2', 'svg', 'ttf',
++                 'otf', 'eot');
++  if (php_sapi_name() != 'cli' && !in_array($ext, $allow)) {
++    // Check for a valid Slac SAML session.
++    drupal_static_reset('stanford_simplesamlphp_auth_autoload');
++    stanford_simplesamlphp_auth_autoload();
++    $saml = stanford_simplesamlphp_auth_get_saml_info();
++    // Log the user out of Drupal if the Slac session is no longer valid.
++    if (user_is_logged_in() && empty($saml['attributes'])) {
++      session_destroy();
++    }
++    // If the site is marked internal, redirect unauthenticated users to
++    // SLAC login. 'goto' parameter tells this module where to send
++    // users after Drupal login.
++    if (variable_get('stanford_ssp_is_internal', FALSE) &&
 +      empty($saml['attributes']) &&
 +      $cp != 'sso/login')
-+  {
-+    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
-+  }
++    {
++      drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
++    }
+   }
  
-   // If the user is anonymous then end the journey.
-   // We don't worry about those suckers.
-@@ -244,6 +286,33 @@ function stanford_ssp_sso_auth() {
+   // Check to force https for authenticated users.
+@@ -244,6 +290,33 @@ function stanford_ssp_sso_auth() {
    return $output;
  }
  
@@ -148,7 +164,7 @@ index 264be8c..6706e63 100644
 +    // Logout of Drupal first.
 +    session_destroy();
 +    // Logout of Slac.
-+    return $saml['source']->logout('/user/login?logout_time=' . time());
++    return $saml['source']->logout();
 +  }
 +  drupal_goto('/user/login');
 +}
