@@ -198,32 +198,36 @@ function stanford_ssp_init() {
   // Don't act on drush requests. It causes an error with the
   // drupal_goto() below. See
   // https://www.drupal.org/project/drush/issues/1230132
-  if (php_sapi_name() == 'cli') {
-    return;
-  }
+  // Also, Pantheon strips cookies for certain file extensions to improve
+  // performance. This can cause trouble with generating image styles
+  // since the request will come across anonymous. Ignore these
+  // type of requests. See
+  // https://pantheon.io/docs/caching-advanced-topics#file-suffixes-and-cookies
   $cp = current_path();
-  drupal_static_reset('stanford_simplesamlphp_auth_autoload');
-  stanford_simplesamlphp_auth_autoload();
-  $saml = stanford_simplesamlphp_auth_get_saml_info();
-  // Log the user out of Drupal if the Slac session is no longer valid.
-  if (user_is_logged_in() && empty($saml['attributes'])) {
-    session_destroy();
-  }
-  // If the site is marked internal, redirect unauthenticated users to
-  // SLAC login. 'goto' parameter tells this module where to send
-  // users after Drupal login.
-  if (variable_get('stanford_ssp_is_internal', FALSE) &&
+  $ext = pathinfo($cp, PATHINFO_EXTENSION);
+  $allow = array('png', 'gif', 'jpeg', 'jpg',
+                 'ico', 'bmp', 'tif', 'tiff',
+                 'webp', 'swf', 'css', 'js',
+                 'woff', 'woff2', 'svg', 'ttf',
+                 'otf', 'eot');
+  if (php_sapi_name() != 'cli' && !in_array($ext, $allow)) {
+    // Check for a valid Slac SAML session.
+    drupal_static_reset('stanford_simplesamlphp_auth_autoload');
+    stanford_simplesamlphp_auth_autoload();
+    $saml = stanford_simplesamlphp_auth_get_saml_info();
+    // Log the user out of Drupal if the Slac session is no longer valid.
+    if (user_is_logged_in() && empty($saml['attributes'])) {
+      session_destroy();
+    }
+    // If the site is marked internal, redirect unauthenticated users to
+    // SLAC login. 'goto' parameter tells this module where to send
+    // users after Drupal login.
+    if (variable_get('stanford_ssp_is_internal', FALSE) &&
       empty($saml['attributes']) &&
       $cp != 'sso/login')
-  {
-    drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
-  }
-
-  // If the user is anonymous then end the journey.
-  // We don't worry about those suckers.
-  $anon = user_is_anonymous();
-  if ($anon) {
-    return;
+    {
+      drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
+    }
   }
 
   // Check to force https for authenticated users.
