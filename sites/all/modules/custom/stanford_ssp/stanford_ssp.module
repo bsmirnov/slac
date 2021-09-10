@@ -1,0 +1,1216 @@
+<?php
+/**
+ * @file
+ * Code for the Stanford SimpleSAML PHP module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function stanford_ssp_menu() {
+  $items = array();
+
+  // Authpoint.
+  $items['sso/login'] = array(
+    'title' => "Stanford SSO Authentication Endpoint",
+    'description' => "Authentication endpoint.",
+    'page callback' => 'stanford_ssp_sso_auth',
+    'access callback' => TRUE,
+    'type' => MENU_SUGGESTED_ITEM,
+    'options' => [
+      'attributes' => [
+        'rel' => 'nofollow',
+      ],
+    ],
+  );
+
+  $items['sso/logout'] = [
+    'title' => "Stanford SSO Authentication Log out",
+    'description' => "Authentication endpoint to send a log out request to the IdP.",
+    'page callback' => 'stanford_ssp_sso_auth_logout',
+    'access callback' => TRUE,
+    'type' => MENU_SUGGESTED_ITEM,
+    'options' => [
+      'attributes' => [
+        'rel' => 'nofollow',
+      ],
+    ],
+  ];
+
+  $items['sso/status'] = [
+    'page callback' => 'stanford_ssp_sso_status',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  ];
+
+  $items['sso/denied-test'] = array(
+    'title' => "Always denied",
+    'description' => "Authentication endpoint test.",
+    'page callback' => 'stanford_ssp_sso_auth',
+    'type' => MENU_CALLBACK,
+  );
+
+  // Configuration Forms
+  // -------------------.
+  $items['admin/config/stanford/stanford_ssp'] = array(
+    'title' => "Stanford SSO",
+    'description' => "Stanford Single Sign On configuration settings.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_configuration_form"),
+    'access arguments' => array('administer stanford_ssp'),
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  $items['admin/config/stanford/stanford_ssp/settings'] = array(
+    'title' => "Stanford SSO",
+    'description' => "Stanford Single Sign On configuration settings.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_configuration_form"),
+    'access arguments' => array('administer stanford_ssp'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  $items['admin/config/stanford/stanford_ssp/authorizations'] = array(
+    'title' => "Authorizations",
+    'description' => "Configure authorization dynamics.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_authorizations_form"),
+    'access arguments' => array('administer stanford_ssp'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  $items['admin/config/stanford/stanford_ssp/role-mappings'] = array(
+    'title' => "Role Mappings",
+    'description' => "Configure role assignments for authenticated users.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_role_mappings_form"),
+    'access arguments' => array('administer stanford_ssp'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  $items['admin/config/stanford/stanford_ssp/login-block-forms'] = array(
+    'title' => "Login Block & Forms",
+    'description' => "Configure role assignments for authenticated users.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_login_block_forms_form"),
+    'access arguments' => array('administer stanford_ssp'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  $items['admin/config/stanford/stanford_ssp/add-sso-user'] = array(
+    'title' => "Add SSO User",
+    'description' => "Create a new user through the SSO.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array("stanford_ssp_add_sso_user"),
+    'access arguments' => array('administer stanford_ssp'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'stanford_ssp.admin.inc',
+  );
+
+  // Redirect login path of SimpleSAMLPHP Auth module to our endpoint.
+  $items['saml_login'] = array(
+    'title' => "Redirect",
+    'description' => "Redirect from saml_login to sso/login.",
+    'page callback' => 'stanford_ssp_redirect',
+    'access callback' => "stanford_ssp_access_login_page",
+    'type' => MENU_CALLBACK,
+  );
+
+  // Redirect login path of WMD to our endpoint.
+  $items['sites/default/webauth/login'] = array(
+    'title' => "Redirect",
+    'description' => "Redirect from saml_login to sso/login.",
+    'page callback' => 'stanford_ssp_redirect',
+    'access callback' => "stanford_ssp_access_login_page",
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function stanford_ssp_permission() {
+  return array(
+    'administer stanford_ssp' => array(
+      'title' => t('Administer Stanford SSP'),
+      'description' => t('Administrate the configuration for the Stanford SSP module.'),
+    ),
+  );
+}
+
+/**
+ * Custom access callback to validate user's access to login page sso/login.
+ */
+function stanford_ssp_access_login_page() {
+
+  // If user is anonymous then go through the log-in process.
+  if (user_is_anonymous()) {
+    return TRUE;
+  }
+
+  // If the user is already logged in and a goto is set then do the redirect.
+  if (isset($_GET['goto'])) {
+    $goto = check_plain($_GET['goto']);
+    drupal_goto($goto);
+  }
+
+  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+    $goto = check_plain($_COOKIE['stanford_ssp_goto']);
+    setcookie("stanford_ssp_goto", 'FALSE', -1);
+    drupal_goto($goto);
+  }
+}
+
+/**
+ * Implements hook_menu_site_status_alter().
+ *
+ * Allow access to log in when site is in maintenance mode.
+ */
+function stanford_ssp_menu_site_status_alter(&$menu_site_status, $path) {
+  if ($menu_site_status == MENU_SITE_OFFLINE && $path == 'sso/login') {
+    $menu_site_status = MENU_SITE_ONLINE;
+  }
+}
+
+/**
+ * Redirect saml_login to sso/login.
+ */
+function stanford_ssp_redirect() {
+  $dest = drupal_get_destination();
+  // If we don't unset the destination we get a redirect loop.
+  unset($_GET['destination']);
+  // Need to go to here to log in.
+  drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])), '301');
+}
+
+/**
+ * Implements hook_init().
+ *
+ * Tried to use hook boot but too few api functions were available.
+ */
+function stanford_ssp_init() {
+  // Don't act on drush requests. It causes an error with the
+  // drupal_goto() below. See
+  // https://www.drupal.org/project/drush/issues/1230132
+  // Also, Pantheon strips cookies for certain file extensions to improve
+  // performance. This can cause trouble with generating image styles
+  // since the request will come across anonymous. Ignore these
+  // type of requests. See
+  // https://pantheon.io/docs/caching-advanced-topics#file-suffixes-and-cookies
+  $cp = current_path();
+  $ext = pathinfo($cp, PATHINFO_EXTENSION);
+  $allow = array('png', 'gif', 'jpeg', 'jpg',
+                 'ico', 'bmp', 'tif', 'tiff',
+                 'webp', 'swf', 'css', 'js',
+                 'woff', 'woff2', 'svg', 'ttf',
+                 'otf', 'eot');
+  if (php_sapi_name() != 'cli' && !in_array($ext, $allow)) {
+    // Check for a valid Slac SAML session.
+    drupal_static_reset('stanford_simplesamlphp_auth_autoload');
+    stanford_simplesamlphp_auth_autoload();
+    $saml = stanford_simplesamlphp_auth_get_saml_info();
+    // Log the user out of Drupal if the Slac session is no longer valid.
+    if (user_is_logged_in() && empty($saml['attributes'])) {
+      session_destroy();
+    }
+    // If the site is marked internal, redirect unauthenticated users to
+    // SLAC login. 'goto' parameter tells this module where to send
+    // users after Drupal login.
+    if (variable_get('stanford_ssp_is_internal', FALSE) &&
+      empty($saml['attributes']) &&
+      $cp != 'sso/login')
+    {
+      drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
+    }
+  }
+
+  // Check to force https for authenticated users.
+  stanford_ssp_force_https();
+
+  // Check for cache setting:
+  if (variable_get("stanford_ssp_prevent_cache", FALSE)) {
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+  }
+
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function stanford_ssp_user_login() {
+
+  // Redirect the user if setting available.
+  $redir = variable_get("stanford_ssp_redirect_on_login", FALSE);
+
+  // If the force redirect option has not been set check for the `goto` url
+  // parameter.
+  if (!$redir && isset($_GET['goto'])) {
+    $goto = check_plain($_GET['goto']);
+    $redir = $goto;
+  }
+
+  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+    $redir = check_plain($_COOKIE['stanford_ssp_goto']);
+    setcookie("stanford_ssp_goto", 'FALSE', -1);
+  }
+
+  if (!empty($redir)) {
+    drupal_goto($redir);
+  }
+
+}
+
+/**
+ * Authentication Endpoint.
+ *
+ * Use this endpoint instead of the default `saml_login` endpoint included in
+ * the simplesaml module as it is easier to make adjustments prior to firing
+ * off that sequence through this function. For example: Check if the force
+ * https is on.
+ *
+ * @return array
+ *   Render array.
+ */
+function stanford_ssp_sso_auth() {
+  $output = array();
+
+  // Check to force https for authenticated users.
+  stanford_ssp_force_https();
+
+  // A way in to simplesaml.
+  module_load_include("inc", "stanford_simplesamlphp_auth", "stanford_simplesamlphp_auth.pages");
+  stanford_simplesamlphp_auth_loginpage();
+
+  return $output;
+}
+
+/**
+ * Logs out a user from Slac authentication.
+ */
+function stanford_ssp_sso_auth_logout() {
+  $saml = stanford_simplesamlphp_auth_get_saml_info();
+
+  if (!empty($saml['attributes'])) {
+    // Logout of Drupal first.
+    session_destroy();
+    // Logout of Slac.
+    return $saml['source']->logout();
+  }
+  drupal_goto('/user/login');
+}
+
+/**
+ * Callback for sso/status.
+ *
+ * Returns true if a user is anonymous to Drupal, but logged into Slac.
+ */
+function stanford_ssp_sso_status() {
+  drupal_page_is_cacheable(FALSE);
+  $saml = stanford_simplesamlphp_auth_get_saml_info();
+  $data = user_is_anonymous() && !empty($saml['attributes']);
+  return drupal_json_output($data);
+}
+
+/**
+ * Enforces the use https configuration setting.
+ *
+ * Checks to ensure user is on https and will force redirect if option is on.
+ * Also enforces secure cookies on https.
+ *
+ * Update: The cookie appears to be set in webauth module.
+ * Leaving the ini_set in just in case. However, it now checks for the cookie session just in case there are times it is not set.
+ */
+function stanford_ssp_force_https() {
+
+  global $is_https;
+  // If is https force secure cookies. Mmmmm cookies.
+  if ($is_https && !ini_get('session.cookie_secure')) {
+    if (session_status() == PHP_SESSION_NONE) {
+      // Mandate secure cookies for sessions.
+      ini_set('session.cookie_secure', 1);
+      // Session cookies should be deleted when the browser session ends.
+      ini_set('session.cookie_lifetime', 0);
+    }
+    return;
+  }
+
+  // Check if setting is on. If not then end.
+  $force = variable_get("stanford_ssp_force_https", FALSE);
+  if (!$force) {
+    return;
+  }
+
+  // Force a redirect to https.
+  $redirect_url = "https://" . check_plain($_SERVER['HTTP_HOST']) . check_plain($_SERVER['REQUEST_URI']);
+  header("Location: " . $redirect_url);
+  drupal_exit();
+
+}
+
+/**
+ * Handles 403 page errors and provided the automagic redirection to SAML login.
+ *
+ * @param array &$page
+ *   The page render array.
+ */
+function stanford_ssp_page_build(array &$page) {
+  // We don't want to mess with the 403 page setting so we should check the
+  // header response on the page build.
+  $headers = drupal_get_http_header();
+
+  // In order to prevent the redirect loop, we check to see if the referrer was login.stanford.edu.
+  // Not all servers support HTTP_REFERER but the ones we use do. I suspect if we wanted to support
+  // more servers we would have to expand on this check but hopefully, this is good enough.
+  //
+  // https://www.php.net/manual/en/reserved.variables.server.php
+  //
+  // The address of the page (if any) which referred the user agent to the current page. This is set
+  // by the user agent. Not all user agents will set this, and some provide the ability to modify
+  // HTTP_REFERER as a feature. In short, it cannot really be trusted.
+  if (user_is_anonymous() && isset($headers["status"]) && $headers["status"] == "403 Forbidden" && !preg_match('/login(-uat)?\.stanford\.edu/', $_SERVER['HTTP_REFERER'])) {
+    if (variable_get("stanford_ssp_automagic_login", FALSE)) {
+      $dest = drupal_get_destination();
+
+      // If we don't unset the destination we get a redirect loop.
+      unset($_GET['destination']);
+
+      // Need to go to here to log in.
+      drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])));
+    }
+  }
+}
+
+/**
+ * Provide a different lookup mechanism other than by user name.
+ *
+ * Needs a patch from https://www.drupal.org/node/2635152 in order for this
+ * hook to exist. Without this hook, only username works for lookup.
+ *
+ * @param object $ext_user
+ *    A loaded user object.
+ * @param array $attributes
+ *   User's Attributes from the simplesaml response.
+ * @param string $auth_field
+ *   A field name.
+ */
+function stanford_ssp_saml_ext_user_alter(&$ext_user, array $attributes, $auth_field) {
+
+  // If a user has already been found we don't need to provide any extra work.
+  if ($ext_user) {
+    return;
+  }
+
+  // If still no user try sunet id.
+  if (!$ext_user) {
+    $sunet = $attributes["uid"];
+    if (is_array($sunet)) {
+      $sunet = array_pop($sunet);
+    }
+    $ext_user = stanford_ssp_user_load_by_sunetid($sunet);
+  }
+}
+
+/**
+ * Loads a user by sunet id.
+ *
+ * @return mixed
+ *   A loaded user object or false if could not be loaded.
+ */
+function stanford_ssp_user_load_by_sunetid($sunetid) {
+  $uid = db_select("stanford_ssp_sunetid", "sss")
+    ->fields("sss", array("uid"))
+    ->condition("sunet", check_plain($sunetid))
+    ->execute()
+    ->fetchField();
+
+  if (is_numeric($uid)) {
+    return user_load($uid);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns the sunet id of a user by their Drupal uid.
+ *
+ * @param int $uid
+ *   Drupal user account id.
+ *
+ * @return mixed
+ *   string if valid account found.
+ *   False if none.
+ */
+function stanford_ssp_get_sunetid_by_uid($uid) {
+  $uid = (int) $uid;
+  $r = db_select("stanford_ssp_sunetid", "sss")
+    ->fields("sss", array("sunet"))
+    ->condition("uid", $uid)
+    ->execute()
+    ->fetchObject();
+  return (isset($r->sunet)) ? $r->sunet : FALSE;
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function stanford_ssp_user_insert(&$edit, $account, $category) {
+
+  // Get the users attributes.
+  try {
+    $attributes = stanford_simplesamlphp_auth_get_saml_attributes();
+  }
+  catch (Exception $e) {
+    watchdog('stanford_ssp_user_insert', 'Could not load SAML information', array(), WATCHDOG_DEBUG);
+  }
+
+  // Some SPs and users do not provide mail or email attributes. Use something
+  // else to try and validate that the created user is not the current user. The
+  // best thing we can try to use is the sunet id.
+  if (isset($attributes['uid'][0]) && ($attributes['uid'][0] !== str_replace("@stanford.edu", "", $account->init))) {
+    return FALSE;
+  }
+
+  // Act on the current user.
+  if (!empty($attributes)) {
+    $record = array(
+      'sunet' => array_pop($attributes['uid']),
+      'uid' => $account->uid,
+    );
+    drupal_write_record("stanford_ssp_sunetid", $record);
+  }
+
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function stanford_ssp_user_delete($account) {
+  // Remove tracking from the schema.
+  db_delete('stanford_ssp_sunetid')
+    ->condition('uid', $account->uid)
+    ->execute();
+}
+
+/**
+ * Implements hook_stanford_simplesamlphp_auth_allow_login().
+ */
+function stanford_ssp_stanford_simplesamlphp_auth_allow_login(array $attributes) {
+
+  // If the checks are off then just let it pass.
+  if (variable_get("stanford_ssp_auth_restrictions", "allow") !== "restrict") {
+    return TRUE;
+  }
+
+  $sunets = variable_get("stanford_ssp_auth_restriction_sunet", FALSE);
+  $groups = variable_get("stanford_ssp_auth_restriction_group", FALSE);
+
+  $isok = TRUE;
+
+  // First check list of sunets.
+  if (!empty($sunets)) {
+    $sunets = explode(",", $sunets);
+    $sunets = array_map("trim", $sunets);
+    $isok = stanford_ssp_simplesamlphp_auth_allow_login_validate_sunets($sunets, $attributes);
+    if ($isok) {
+      return TRUE;
+    }
+  }
+
+  // If there was no match in the sunet list, check the groups if config allows.
+  if (!empty($groups)) {
+    $groups = explode(",", $groups);
+    $groups = array_map("trim", $groups);
+    return stanford_ssp_simplesamlphp_auth_allow_login_validate_groups($groups, $attributes);
+  }
+
+  return $isok;
+}
+
+/**
+ * Validates a list of sunets against the user that is trying to log in.
+ *
+ * @param array $sunets
+ *   An array of sunets.
+ * @param array $attributes
+ *   An array of saml attributes.
+ *
+ * @return bool
+ *   True if sunet is in attributes;
+ */
+function stanford_ssp_simplesamlphp_auth_allow_login_validate_sunets(array $sunets, array $attributes) {
+  $sunetid = array_pop($attributes['uid']);
+  return in_array($sunetid, $sunets);
+}
+
+/**
+ * Validates whether a user is in a group.
+ *
+ * @param array $groups
+ *   An array of groups. Both priv and workgroup.
+ * @param array $attributes
+ *   An array of SAML attributes.
+ *
+ * @return bool
+ *   True if there are any matches.
+ */
+function stanford_ssp_simplesamlphp_auth_allow_login_validate_groups(array $groups, array $attributes) {
+
+  // How do we validate the group? Via saml attribute or by the workgroup api?
+  $method = variable_get('stanford_ssp_role_map_source', 'entitlement');
+  $result = FALSE;
+
+  switch ($method) {
+    case "workgroup":
+      $sunet = array_pop($attributes[variable_get('stanford_simplesamlphp_auth_unique_id', 'eduPersonPrincipalName')]);
+      $result = stanford_ssp_validate_workgroup_by_api($sunet, $groups);
+      break;
+
+    default:
+      if (!isset($attributes['eduPersonEntitlement'])) {
+        watchdog('stanford_ssp', 'No eduPersonEntitlement available for workgroup mapping. Ensure you have gotten the appropriate information released from the identity provider.', array(), WATCHDOG_ERROR);
+        return $result;
+      }
+      $samlgroups = $attributes['eduPersonEntitlement'];
+      $result = (count(array_intersect($groups, $samlgroups)) > 0);
+  }
+
+  return $result;
+}
+
+/**
+ * Implements simplesamlphp_auth_user_roles_alter().
+ */
+function stanford_ssp_stanford_simplesamlphp_auth_user_roles_alter($user) {
+  $saml = stanford_simplesamlphp_auth_get_saml_info();
+  $source = $saml['source'];
+
+  // No source object. Must be a local user.
+  if (!is_object($source)) {
+    return;
+  }
+
+  // No authenticated user to work on. Go to bed.
+  if (!$source->isAuthenticated()) {
+    return;
+  }
+
+  // Action to perform when evaluating roles.
+  $operation = variable_get("stanford_ssp_auth_role_map", "none");
+
+  // If the action to do is none then we can end this function.
+  if ($operation == "none") {
+    return;
+  }
+
+  // What roles are matchy pants.
+  $roles = stanford_simplesamlphp_auth_rolepopulation(variable_get('stanford_simplesamlphp_auth_rolepopulation', ''));
+  $user_roles = user_roles();
+  $userinfo = FALSE;
+  $values = array_intersect_key($user_roles, $roles);
+
+  // Do the op.
+  switch ($operation) {
+
+    // Much like simplesamlphp_auths re-assign roles option this will replace
+    // all of the users roles with the ones that were matched in the mapping.
+    case 'reassign':
+      $userinfo = array('roles' => $values);
+      break;
+
+    // Unline implesamlphp_auths re-assign roles option this will only add/grant
+    // additional roles to the user.
+    case 'grant':
+      $new_roles = $user->roles + $values;
+      $userinfo = array('roles' => $new_roles);
+      break;
+  }
+
+  // Always add the SSO User role if it exists.
+  $sso_user_role = user_role_load_by_name("SSO User");
+  if ($sso_user_role) {
+    $userinfo['roles'][$sso_user_role->rid] = $sso_user_role->name;
+  }
+
+  $add_sunet_user_role = variable_get('stanford_ssp_grant_sunet_user_role', FALSE);
+  if ($add_sunet_user_role) {
+    // Always add the SUNet User role if it exists.
+    $sunet_user_role = user_role_load_by_name("SUNet User");
+    if ($sunet_user_role) {
+      $userinfo['roles'][$sunet_user_role->rid] = $sunet_user_role->name;
+    }
+  }
+
+  // Save the new roles.
+  $user = user_save($user, $userinfo);
+}
+
+/**
+ * Maps the affiliations to the user roles.
+ *
+ * @param object $user
+ *   The user to check the attributes on. Probably should be the currently
+ *   logged in user as the attributes come from that user anyhow.
+ */
+function stanford_ssp_auth_role_map_person_affiliation(&$user) {
+  $roles = user_roles();
+  $attributes = stanford_simplesamlphp_auth_get_attributes();
+  $affiliations = $attributes['eduPersonAffiliation'];
+
+  // Role mapping array goes as such:
+  // regex => role name.
+  $maps = array(
+    '/faculty/i' => 'Stanford Faculty',
+    '/staff/i' => 'Stanford Staff',
+    '/postdoc/i' => 'Stanford Student',
+    '/student/i' => 'Stanford Student',
+  );
+
+  // Loop through the expressions looking for matches in the maps array.
+  $matches = array();
+  foreach ($maps as $expression => $role_name) {
+    $has_matches = preg_grep($expression, $affiliations);
+
+    // If any of the affiliations match the pattern add it to the matches array
+    // keying by id so that we don't get duplicates.
+    if (count($has_matches)) {
+      // Check to see if the role exist. It may have been deleted.
+      $role = user_role_load_by_name($role_name);
+      if ($role) {
+        $matches[$role->rid] = $role->name;
+      }
+    }
+
+  }
+
+  // If anything was matched save the user.
+  if (count($matches)) {
+    $final_roles = $user->roles + $matches;
+    $user = user_save($user, array('roles' => $final_roles));
+  }
+
+}
+
+/**
+ * *****************************************
+ * FORM ALTERS
+ * *****************************************
+ */
+
+/**
+ * User account form.
+ *
+ * @param array $form
+ *   The form array.
+ * @param array &$form_state
+ *   The form state array.
+ */
+function stanford_ssp_form_user_profile_form_alter(array &$form, array &$form_state) {
+
+  // Check for editing a user. If we don't have a user we can end.
+  $account = isset($form["#user"]) ? $form["#user"] : FALSE;
+  if (!$account) {
+    return;
+  }
+
+  // Check to see if user is a SAML user.
+  $sunet = stanford_ssp_get_sunetid_by_uid($account->uid);
+  if (!$sunet) {
+    return;
+  }
+
+  // If a saml user check to see if they can use the password fields.
+  if (!variable_get("stanford_simplesamlphp_auth_allowsetdrupalpwd", FALSE)) {
+    $form["account"]['pass']['#access'] = FALSE;
+  }
+
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ */
+function stanford_ssp_form_user_login_alter(array &$form, array &$form_state) {
+
+  // Check for https forcing:
+  stanford_ssp_force_https();
+
+  // Remove the Federated login link because it is ugly.
+  if (isset($form["links"])) {
+    unset($form["links"]);
+  }
+
+  $show_sso = variable_get("stanford_ssp_show_sso_login", TRUE);
+  $show_local = variable_get("stanford_ssp_show_local_login", TRUE);
+  $sso_on = variable_get("stanford_simplesamlphp_auth_activate", FALSE);
+  $local_on = variable_get("stanford_simplesamlphp_auth_allowdefaultlogin", TRUE);
+
+  // Display (or not) the login link for SSO (SAML).
+  if ($show_sso && $sso_on) {
+    $form['saml_auth'] = array(
+      '#type' => 'fieldset',
+      '#title' => "SUNet Login",
+      '#weight' => -10,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $link_text = variable_get("stanford_ssp_sso_link_text", t("Log in with your SUNet ID »"));
+    $options = [
+      'attributes' => [
+        'rel' => 'nofollow',
+      ],
+    ];
+    $form['saml_auth']['saml_link'] = array(
+      '#prefix' => "<p>",
+      '#markup' => l($link_text, "sso/login", $options),
+      '#suffix' => "</p>",
+    );
+  }
+
+  // If local login form is enabled add a fieldset to title it.
+  if ($show_local && $local_on) {
+    // Add the fieldset for the Drupal login form.
+    $form['drupal_auth'] = array(
+      '#type' => 'fieldset',
+      '#title' => "Drupal Login",
+      '#weight' => 0,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      // Ensure that the name and pass fields are not
+      // nested on validate and submit.
+      '#tree' => FALSE,
+    );
+
+    // Move the form items inside.
+    $form['drupal_auth']['actions'] = $form['actions'];
+    $form['drupal_auth']['name'] = $form['name'];
+    $form['drupal_auth']['pass'] = $form['pass'];
+    unset($form['actions']);
+    unset($form['name']);
+    unset($form['pass']);
+
+  }
+
+  // If not showing local we need to unset the login form items.
+  if (!$show_local || !$local_on) {
+    unset($form['name']);
+    unset($form['pass']);
+    unset($form['actions']);
+  }
+
+  // If nothing available print out a message.
+  if (!$show_local && !$show_sso) {
+    $form["nothingtoseehere"]["#markup"] = "<h3>No login options available.</h3>";
+  }
+
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function stanford_ssp_form_user_pass_alter(array &$form, array &$form_state) {
+  $form["#validate"][] = "stanford_ssp_form_user_pass_alter_validate";
+}
+
+/**
+ * Prevent password reset from working if local accounts turned off.
+ *
+ * @param array $form
+ *   The form array.
+ * @param array $form_state
+ *   The form state array.
+ */
+function stanford_ssp_form_user_pass_alter_validate(array $form, array $form_state) {
+  if (!variable_get("stanford_simplesamlphp_auth_allowdefaultlogin", TRUE)) {
+    form_set_error("", t("We're sorry but local account login has been disabled. Password reset is not available at this time."));
+  }
+}
+
+/**
+ * Formats workgroup entitlment.
+ *
+ * E.g.: helpdesk:consultants to helpdesk_consultants.
+ *
+ * @param string $entitlement
+ *   E.g.: helpdesk:consultants.
+ *
+ * @return string
+ *   E.g.: helpdesk_consultants
+ */
+function stanford_ssp_format_entitlement($entitlement) {
+  $format_enabled = variable_get('stanford_ssp_format_entitlements', FALSE);
+  if ($format_enabled) {
+    $entitlement = strtolower($entitlement);
+    $entitlement = str_replace(":", "_", $entitlement);
+  }
+  return $entitlement;
+}
+
+/**
+ * Set variables based on webauth settings.
+ */
+function stanford_ssp_import_webauth_settings() {
+
+  if (!module_exists("webauth")) {
+    drush_log("Webauth module is not enabled.", "error");
+    return;
+  }
+
+  // Enable the saml block if it has not been enabled.
+  if (!module_exists("stanford_saml_block")) {
+    module_enable(array("stanford_saml_block"));
+    drush_log("Enabled stanford_saml_block", "success");
+
+    // Update the webauth block settings to be saml block settings.
+    db_update("block")
+      ->fields([
+        'module' => 'stanford_saml_block',
+        'delta' => 'stanford_saml_block_login_block',
+      ])
+      ->condition('module', 'webauth')
+      ->execute();
+  }
+
+  $sso_role = user_role_load_by_name('SSO User');
+  $sunet_role = user_role_load_by_name('SUNet User');
+  if ($sunet_role) {
+    drush_log("Transferring SUNet User permissions to SSO User.", "success");
+    $sunet_role_permissions = user_role_permissions(array($sunet_role->rid => $sunet_role->name));
+
+    // Ignore permissions that are still in the DB but not in a module anywhere.
+    $permissions = array_keys(array_shift($sunet_role_permissions));
+    $module_permissions = array_keys(user_permission_get_modules());
+    $valid_permissions = array_intersect($permissions, $module_permissions);
+    user_role_grant_permissions($sso_role->rid, $valid_permissions);
+  }
+
+  drush_log("Beginning webauth config settings to ssp settings conversion.", "success");
+
+  // If the redirect is set then migrate to the equivalent ssp var.
+  $webauth_redirect = variable_get('webauth_destination', FALSE);
+  if ($webauth_redirect) {
+    variable_set('stanford_ssp_redirect_on_login', $webauth_redirect);
+  }
+
+  // If webauth allowed local logins, translate that in to SSPs options.
+  $webauth_allow_local = variable_get("webauth_allow_local", NULL);
+  if (!is_null($webauth_allow_local)) {
+    variable_set("stanford_ssp_show_local_login", $webauth_allow_local);
+  }
+
+  // Map the link text to the new variables.
+  $webauth_link_text = variable_get("webauth_link_text", 'Log in with WebAuth');
+  if ($webauth_link_text !== "Log in with WebAuth") {
+    variable_set("stanford_ssp_sso_link_text", $webauth_link_text);
+  }
+
+  // Anyone with a valid SUNet ID will be allowed to log in.
+  $wrvu = variable_get('webauth_require_valid_user', NULL);
+  if (!is_null($wrvu)) {
+    if ($wrvu == "0") {
+      variable_set('stanford_ssp_auth_restrictions', "restrict");
+    }
+    // In theory, the only values for this variable should be "1" or "0".
+    // However, who knows, so we'll set it to the default of "any" unless
+    // someone has explicitly set it to "0".
+    else {
+      variable_set('stanford_ssp_auth_restrictions', "any");
+    }
+  }
+  else {
+    variable_set('stanford_ssp_auth_restrictions', 'any');
+  }
+
+  // webauth_require_users.
+  $webauth_require_users = variable_get("webauth_require_users", FALSE);
+  if ($webauth_require_users) {
+    $webauth_require_users = check_plain(preg_replace('/\r\n/', ',', $webauth_require_users));
+    variable_set("stanford_ssp_auth_restriction_sunet", $webauth_require_users);
+  }
+
+  // webauth_require_privgroups.
+  $webauth_require_privgroups = variable_get("webauth_require_privgroups", FALSE);
+  if ($webauth_require_privgroups) {
+    $privgroups = explode("\r\n", $webauth_require_privgroups);
+    $privgroups = array_map('stanford_ssp_format_entitlement', $privgroups);
+    $webauth_require_privgroups = implode(',', $privgroups);
+    variable_set("stanford_ssp_auth_restriction_group", $webauth_require_privgroups);
+  }
+
+  // Update the authmap table to point existing users to ssp.
+  drush_log("Updating all users in the authmap table.", "notice");
+  db_update("authmap")
+    ->fields(array("module" => "stanford_simplesamlphp_auth"))
+    ->condition("module", "webauth")
+    ->execute();
+
+  // webauth_default_role
+  // 1. Add the SSO Role to everyone that already exists as a webauth user.
+  // X (maybe). Change the authmap key to email from sunetid.
+  $authmaps = db_select("authmap")
+    ->fields("authmap", array("authname", "uid"))
+    ->condition("module", "stanford_simplesamlphp_auth")
+    ->execute();
+
+  // Loop through the authmaps and add them to the map table.
+  while ($entry = $authmaps->fetchObject()) {
+    try {
+      db_insert("stanford_ssp_sunetid")
+        ->fields([
+          'sunet' => array_shift(explode("@", $entry->authname)),
+          'uid' => $entry->uid,
+        ])
+        ->execute();
+
+      // Also grant the new SSO USER role.
+      if (isset($sso_role->rid) && is_numeric($sso_role->rid)) {
+        user_multiple_role_edit(array($entry->uid), 'add_role', $sso_role->rid);
+      }
+    }
+    catch (Exception $e) {
+      // Duplicate user detected.
+      watchdog('stanford_ssp', $e->getMessage(), array(), WATCHDOG_DEBUG);
+      if (function_exists('drush_log')) {
+        drush_log($e->getMessage(), 'warning');
+      }
+    }
+  }
+
+  // And then a bunch we want to set explicitly.
+  variable_set('stanford_simplesamlphp_auth_unique_id', 'uid');
+  variable_set('stanford_ssp_automagic_login', TRUE);
+  variable_set('stanford_simplesamlphp_auth_autoenablesaml', TRUE);
+  variable_set('stanford_ssp_prevent_cache', FALSE);
+  variable_set('stanford_ssp_show_sso_login', TRUE);
+  // Grant the "SUNet User" role to all users who log in with stanford_ssp.
+  // We are assuming that we want this
+  // if we are upgrading from WMD to stanford_ssp.
+  variable_set('stanford_ssp_grant_sunet_user_role', TRUE);
+
+  // Convert our WMD role mappings to Stanford SSP.
+  stanford_ssp_convert_webauth_role_mappings();
+
+  // Finally, disable and uninstall WMD.
+  drush_log("Disabling and uninstalling the webauth modules.", "notice");
+  module_disable(array('webauth', 'webauth_extras'));
+  drupal_uninstall_modules(array('webauth', 'webauth_extras'));
+
+  // FIN.
+  drush_log("Migrated from and uninstalled the webauth module.", "success");
+}
+
+/**
+ * Get the mappings from the webauth table.
+ *
+ * Query the `webauth_roles` table to get an array of Role IDs and the workgroup
+ * they are mapped to.
+ *
+ * @return array
+ *   An array of objects that each contain an rid and a workgroup.
+ */
+function stanford_ssp_get_webauth_role_mappings() {
+  $query = db_select("webauth_roles", "wr")
+    ->fields("wr", array("rid", "wa_group"));
+  $result = $query->execute();
+  $mappings = array();
+  foreach ($result as $record) {
+    $mappings[] = $record;
+  }
+  return $mappings;
+}
+
+/**
+ * Convert WMD workgroup mappings to SAML mappings.
+ */
+function stanford_ssp_convert_webauth_role_mappings() {
+  // This duplicates some functionality in
+  // stanford_ssp_map_entitlement_to_role().
+  $webauth_roles = stanford_ssp_get_webauth_role_mappings();
+  $rolepop = variable_get('stanford_simplesamlphp_auth_rolepopulation', '');
+  $roles = array();
+  if (!is_null($rolepop)) {
+    $roles = explode('|', $rolepop);
+  }
+  foreach ($webauth_roles as $mapping) {
+    // stanford_simplesamlphp_auth_rolepopulation
+    // eg: $rid:eduPersonEntitlement,=,$workgroup
+    // Replace colons with underscores.
+    $workgroup = stanford_ssp_format_entitlement($mapping->wa_group);
+    $roles[] = $mapping->rid . ":eduPersonEntitlement,=," . $workgroup;
+  }
+  $new_rolepop = implode('|', $roles);
+  variable_set('stanford_simplesamlphp_auth_rolepopulation', $new_rolepop);
+}
+
+/**
+ * Validate a sunet id against a workgroups through the API.
+ *
+ * @param string $sunet
+ *   A sunet id.
+ * @param array $groups
+ *   The groups to validate against.
+ *
+ * @return bool
+ *   True if in at least one of the groups.
+ */
+function stanford_ssp_validate_workgroup_by_api($sunet, array $groups) {
+
+  foreach ($groups as $group) {
+    $members = stanford_ssp_get_workgroup_members_by_api($group);
+    if (in_array($sunet, $members)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Get an array of sunet ids in a workgroup.
+ *
+ * @param string $group
+ *   The workgroup name. eg: "helpdesk:consultants".
+ *
+ * @return array
+ *   An array of members for the passed in workgroup.
+ */
+function stanford_ssp_get_workgroup_members_by_api($group) {
+
+  // Validate group name. Needs to be in the format 'something:something'.
+  $xp = explode(":", $group);
+  if (count($xp) !== 2) {
+    watchdog('stanford_ssp', 'Invalid workgroup format.', array(), WATCHDOG_ERROR);
+    return array();
+  }
+
+  try {
+    $values = stanford_ssp_fetch_from_workgroup_api($group);
+  }
+  catch (Exception $e) {
+    // Return nothing.
+    return array();
+  }
+
+  $members = array();
+
+  // The workgroup api returns a different array structure if a workgroup
+  // only contains one member. This logic restructures the array from the api
+  // to work with only one member.
+  $member_count = count($values['members']['member']);
+  $members_api = $values['members']['member'];
+  if ($member_count == 1) {
+    $members_api = [0 => $values['members']['member']];
+  }
+
+  // If there are members in this group add them to the allowed list.
+  if (!empty($members_api)) {
+    foreach ($members_api as $member) {
+      try {
+        $members[] = stanford_ssp_get_api_members_from_xml_array($member);
+      }
+      catch (Exception $e) {
+        watchdog('stanford_ssp', $e->getMessage(), array(), WATCHDOG_DEBUG);
+      }
+    }
+  }
+
+  return array_unique($members);
+}
+
+/**
+ * Makes a call to the workgroup endpoint via curl.
+ *
+ * Fetch the group information from the configured endpoint.
+ *
+ * @param string $group
+ *   The workgroup to look up.
+ */
+function stanford_ssp_fetch_from_workgroup_api($group = "") {
+  // Workgroup endpoint. Needs an installed SSL cert to work.
+  // UAT server is at: https://workgroupsvc-uat.stanford.edu/v1/workgroups/
+  // Old production server: https://workgroupsvc.stanford.edu/v1/workgroups/
+  // New production server: https://aswsweb.stanford.edu/mais/workgroupsvc/v1/workgroups/
+  $endpoint = variable_get('stanford_ssp_workgroup_api_endpoint', 'https://workgroupsvc.stanford.edu/v1/workgroups/');
+  $endpoint .= $group;
+
+  // In order to make this request openssl has to be available to php.
+  if (!function_exists('openssl_get_cert_locations')) {
+    throw new Exception("PHP must be compiled with Openssl in order for workgroup api validation to work.");
+  }
+
+  // Add the SSL certificate paths.
+  $openssl_defaults = openssl_get_cert_locations();
+  $default_path = $openssl_defaults['default_cert_dir'];
+  $cert_filename = variable_get('stanford_ssp_workgroup_api_cert', $default_path . "/stanford_ssp.cert");
+  $key_filename = variable_get('stanford_ssp_workgroup_api_key', $default_path . "/stanford_ssp.key");
+
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $endpoint);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, TRUE);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+  curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+  curl_setopt($ch, CURLOPT_SSLKEY, $key_filename);
+  curl_setopt($ch, CURLOPT_SSLCERT, $cert_filename);
+
+  $response = curl_exec($ch);
+  $err = curl_errno($ch);
+  $errmsg = curl_error($ch);
+  $curl_info = curl_getinfo($ch);
+  curl_close($ch);
+
+  // If the workgroup is not found, and is not a stanford stem,
+  // then the workgroup is invalid.
+  if ($curl_info['http_code'] == 404 && strpos($group, "stanford:") !== 0) {
+    watchdog('stanford_ssp', 'Workgroup %group not found. <code>!code</code>', ["!code" => serialize($curl_info), '%group' => $group], WATCHDOG_ERROR);
+    throw new Exception("Error: Workgroup not found.");
+  }
+
+  // If the rest did not reply with a 200 and is not a stem workgroup, there
+  // must have been an error connecting with the API.
+  if ($curl_info['http_code'] !== 200 && strpos($group, "stanford:") !== 0) {
+    watchdog('stanford_ssp', 'Failed to fetch workgroup information from api. <code>!code</code>', array("!code" => serialize($curl_info)), WATCHDOG_ERROR);
+    throw new Exception("Error fetching workgroup api information.");
+  }
+
+  // Not allowed. These are special.
+  // Stem workgroups are private and information will not be returned to
+  // the requestor.
+  if (strpos($group, "stanford:") === 0) {
+    throw new Exception("Cannot evaluate stanford:* groups in workgroup api.");
+  }
+
+  if (empty($response) || ($err == 0 && !empty($errmsg))) {
+    watchdog('stanford_ssp', '%msg <code>!code</code>', ["!code" => serialize($curl_info), '%msg' => $errmsg], WATCHDOG_ERROR);
+    throw new Exception($errmsg);
+  }
+
+  // We have a valid response. Load up the xml and parse out the users.
+  $xml = simplexml_load_string($response);
+  $json = json_encode($xml);
+  $values = json_decode($json, TRUE);
+
+  return $values;
+}
+
+/**
+ * Pull out the sunet id of the member from the xml array.
+ *
+ * @param array $member
+ *   Member from api repsonse.
+ *
+ * @return string
+ *   Sunet id.
+ */
+function stanford_ssp_get_api_members_from_xml_array(array $member) {
+  if (!isset($member['@attributes'])) {
+    throw new Exception("Invalid member attribute data");
+  }
+  return $member['@attributes']['id'];
+}

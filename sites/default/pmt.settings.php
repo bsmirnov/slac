@@ -1,6 +1,6 @@
 <?php
 
-// Created at: 2021-06-18 13:23:16
+// Created at: 2021-06-15 15:37:11
 
 /**
  * This file is added by Pantheon Migration Tool.
@@ -19,12 +19,12 @@ $cli = (php_sapi_name() === 'cli');
  */
 if (defined('PANTHEON_ENVIRONMENT')) {
   $variables = array (
-  'domains' => 
+  'domains' =>
   array (
-    'canonical' => null,
-    'synonyms' => 
+    'canonical' => 'cryoem.slac.stanford.edu',
+    'synonyms' =>
     array (
-      0 => 'live-slac-internal-humres-d7.pantheonsite.io',
+      0 => 'live-slac-cryoem-d7.pantheonsite.io',
     ),
   ),
   'redis' => false,
@@ -143,19 +143,19 @@ if (defined('PANTHEON_ENVIRONMENT')) {
 }
 
 // Production settings
-$profile = "slac_int_org";
-$install_profile = "slac_int_org";
-$conf['install_profile'] = 'slac_int_org';
+$profile = "slac_ext_org";
+$install_profile = "slac_ext_org";
+$conf['install_profile'] = 'slac_ext_org';
 $conf['clean_url'] = 1;
 $conf['aegir_api'] = 0;
-$conf["slac_site_owner"] = 'ramona';
+$conf["slac_site_owner"] = 'jpham';
 $conf["site_mail"] = 'noreply@slac.stanford.edu';
 
-# Extra configuration from modules:
+  # Extra configuration from modules:
 $conf["slac_role_mapping"] = array (
-  'administrator' => 'drupal-12132-administrator',
-  'manager' => 'drupal-12132-manager',
-  'editor' => 'drupal-12132-editor',
-  'site_member' => 'drupal-12132-site_member',
-  'author' => 'drupal-12132-author',
+  'administrator' => 'drupal-11040-administrator',
+  'manager' => 'drupal-11040-manager',
+  'editor' => 'drupal-11040-editor',
+  'site_member' => 'drupal-11040-site_member',
+  'author' => 'drupal-11040-author',
 );
