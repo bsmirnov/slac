@@ -30,7 +30,15 @@ function stanford_ssp_boot() {
       // https://www.drupal.org/project/drush/issues/1230132
       if (php_sapi_name() != 'cli') {
         // Never allow the Pantheon CDN to cache internal pages.
-        header('X-Drupal-Cache: MISS');
+        foreach (headers_list() as $h) {
+          if (stripos($h, 'X-Drupal-Cache: HIT') === 0) {
+            header('X-Drupal-Cache: MISS');
+            // Add a custom header indicating that page cache for an internal
+            // site was served.
+            header('Slac-Internal-Site-Cache: HIT');
+          }
+        }
+
         // Check for a valid Slac SAML session.
         drupal_static_reset('stanford_simplesamlphp_auth_autoload');
         stanford_simplesamlphp_auth_autoload();
@@ -45,9 +53,6 @@ function stanford_ssp_boot() {
             drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
           }
         }
-        // Add a custom header indicating that page cache for an internal
-        // site was served.
-        header('Slac-Internal-Cache: HIT');
       }
     }
   }
