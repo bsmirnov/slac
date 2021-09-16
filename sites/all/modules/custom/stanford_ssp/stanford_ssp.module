@@ -45,6 +45,9 @@ function stanford_ssp_boot() {
             drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
           }
         }
+        // Add a custom header indicating that page cache for an internal
+        // site was served.
+        header('Slac-Internal-Cache: HIT');
       }
     }
   }
