@@ -136,12 +136,6 @@ if (defined('PANTHEON_ENVIRONMENT')) {
       }
     }
 
-    if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php")) {
-      require_once __DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php";
-    }
-  }
-}
-
 // Production settings
 $profile = "slac_ext_org";
 $install_profile = "slac_ext_org";
@@ -151,7 +145,7 @@ $conf['aegir_api'] = 0;
 $conf["slac_site_owner"] = 'jpham';
 $conf["site_mail"] = 'noreply@slac.stanford.edu';
 
-  # Extra configuration from modules:
+# Extra configuration from modules:
 $conf["slac_role_mapping"] = array (
   'administrator' => 'drupal-11040-administrator',
   'manager' => 'drupal-11040-manager',
@@ -159,3 +153,27 @@ $conf["slac_role_mapping"] = array (
   'site_member' => 'drupal-11040-site_member',
   'author' => 'drupal-11040-author',
 );
+
+// Sets redirection for old file paths communications/sites/communications.internal.slac.stanford.edu/files/ to /sites/default/files/ directory.
+
+if (php_sapi_name() != "cli") {
+  $regexp = "/\/communications\/sites\/communications.internal.slac.stanford.edu\/files\//i";
+
+  if (($redirect = preg_replace($regexp, '/sites/default/files/', $_SERVER['REQUEST_URI'])) && ($redirect != $_SERVER['REQUEST_URI'])) {
+    header('HTTP/1.0 301 Moved Permanently');
+    header('Location: https://' . $_SERVER['HTTP_HOST'] . $redirect);
+
+    // Name transaction "redirect" in New Relic for improved reporting (optional).
+    if (extension_loaded('newrelic')) {
+      newrelic_name_transaction("redirect");
+    }
+
+    exit();
+  }
+}
+
+    if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php")) {
+      require_once __DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php";
+    }
+  }
+}
