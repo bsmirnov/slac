@@ -22,6 +22,10 @@ function stanford_ssp_boot() {
                  'woff', 'woff2', 'svg', 'ttf',
                  'otf', 'eot');
   if (!in_array($ext, $allow)) {
+    // Check for a valid Slac SAML session.
+    drupal_static_reset('stanford_simplesamlphp_auth_autoload');
+    stanford_simplesamlphp_auth_autoload();
+    $saml = stanford_simplesamlphp_auth_get_saml_info();
     // Page requests for internal sites are private and need to be
     // redirected if the user doesn't have a valid saml session.
     if (variable_get('stanford_ssp_is_internal', FALSE)) {
@@ -39,10 +43,6 @@ function stanford_ssp_boot() {
           }
         }
 
-        // Check for a valid Slac SAML session.
-        drupal_static_reset('stanford_simplesamlphp_auth_autoload');
-        stanford_simplesamlphp_auth_autoload();
-        $saml = stanford_simplesamlphp_auth_get_saml_info();
         if (empty($saml['attributes'])) {
           // The saml session is not valid. Log the user out of Drupal
           // if needed.
