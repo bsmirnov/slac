@@ -21,10 +21,10 @@ if (defined('PANTHEON_ENVIRONMENT')) {
   $variables = array (
   'domains' =>
   array (
-    'canonical' => 'cryoem.slac.stanford.edu',
+    'canonical' => null,
     'synonyms' =>
     array (
-      0 => 'live-slac-cryoem-d7.pantheonsite.io',
+      0 => 'live-slac-internal-comms-d7.pantheonsite.io',
     ),
   ),
   'redis' => false,
