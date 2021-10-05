@@ -14,6 +14,59 @@
  */
 $cli = (php_sapi_name() === 'cli');
 
+// Settings
+  $profile = "slac_ext_org";
+  $install_profile = "slac_ext_org";
+  $conf['install_profile'] = 'slac_ext_org';
+  $conf['clean_url'] = 1;
+  $conf['aegir_api'] = 0;
+  $conf["slac_site_owner"] = 'jpham';
+  $conf["site_mail"] = 'noreply@slac.stanford.edu';
+
+  # Extra configuration from modules:
+  $conf["slac_role_mapping"] = array (
+    'administrator' => 'drupal-11040-administrator',
+    'manager' => 'drupal-11040-manager',
+    'editor' => 'drupal-11040-editor',
+    'site_member' => 'drupal-11040-site_member',
+    'author' => 'drupal-11040-author',
+  );
+
+// Sets redirection from old file paths /sites/*.stanford.edu/files/ to /sites/default/files/ directory.
+
+if (php_sapi_name() != "cli") {
+  $regexp = "/\/sites\/([A-Za-z0-9_\.]+)?stanford\.edu\/files\//i";
+
+  if (($redirect = preg_replace($regexp, '/sites/default/files/', $_SERVER['REQUEST_URI'])) && ($redirect != $_SERVER['REQUEST_URI'])) {
+    header('HTTP/1.0 301 Moved Permanently');
+    header('Location: https://' . $_SERVER['HTTP_HOST'] . $redirect);
+
+    // Name transaction "redirect" in New Relic for improved reporting (optional).
+    if (extension_loaded('newrelic')) {
+      newrelic_name_transaction("redirect");
+    }
+
+    exit();
+  }
+}
+
+  /**
+   * Redirect for subpath.
+   */
+  if (preg_match('/.*pantheonsite.io/', $_SERVER['HTTP_HOST']) === 1) {
+    $redirect_path = "";
+    if( strpos( $_SERVER['REQUEST_URI'], '/communications/' ) === 0){
+      $redirect_path = 'https://' . $_SERVER['HTTP_HOST'] . str_replace('/communications/', '/', $_SERVER['REQUEST_URI']);
+    }
+    if($redirect_path != ""){
+      if ( ( php_sapi_name() != "cli" ) ) {
+        header( "HTTP/1.0 301 Moved Permanently");
+        header( "Location: $redirect_path");
+        exit();
+      }
+    }
+  }
+
 /**
  * Pantheon-specific settings
  */
@@ -135,42 +188,6 @@ if (defined('PANTHEON_ENVIRONMENT')) {
         $conf[$variable] = $value;
       }
     }
-
-// Production settings
-$profile = "slac_ext_org";
-$install_profile = "slac_ext_org";
-$conf['install_profile'] = 'slac_ext_org';
-$conf['clean_url'] = 1;
-$conf['aegir_api'] = 0;
-$conf["slac_site_owner"] = 'jpham';
-$conf["site_mail"] = 'noreply@slac.stanford.edu';
-
-# Extra configuration from modules:
-$conf["slac_role_mapping"] = array (
-  'administrator' => 'drupal-11040-administrator',
-  'manager' => 'drupal-11040-manager',
-  'editor' => 'drupal-11040-editor',
-  'site_member' => 'drupal-11040-site_member',
-  'author' => 'drupal-11040-author',
-);
-
-// Sets redirection for old file paths communications/sites/communications.internal.slac.stanford.edu/files/ to /sites/default/files/ directory.
-
-if (php_sapi_name() != "cli") {
-  $regexp = "/\/communications\/sites\/communications.internal.slac.stanford.edu\/files\//i";
-
-  if (($redirect = preg_replace($regexp, '/sites/default/files/', $_SERVER['REQUEST_URI'])) && ($redirect != $_SERVER['REQUEST_URI'])) {
-    header('HTTP/1.0 301 Moved Permanently');
-    header('Location: https://' . $_SERVER['HTTP_HOST'] . $redirect);
-
-    // Name transaction "redirect" in New Relic for improved reporting (optional).
-    if (extension_loaded('newrelic')) {
-      newrelic_name_transaction("redirect");
-    }
-
-    exit();
-  }
-}
 
     if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php")) {
       require_once __DIR__ . DIRECTORY_SEPARATOR . "files/private/settings/$environment.settings.php";
