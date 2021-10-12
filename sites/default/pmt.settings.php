@@ -3,6 +3,14 @@
 // Created at: 2021-06-15 15:37:11
 
 /**
+ * This is the setting file to dynamically create base_url for ACDN
+originating requests.
+ */
+if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'acdn.settings.php')) {
+  require_once __DIR__ . DIRECTORY_SEPARATOR . 'acdn.settings.php';
+}
+
+/**
  * This file is added by Pantheon Migration Tool.
  * Includes Pantheon-specific configs.
  * !!! Do NOT EDIT or REMOVE this file while site is in migration process.!!!
