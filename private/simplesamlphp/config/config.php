@@ -1239,3 +1239,5 @@ $config = [
      */
     'store.redis.prefix' => 'SimpleSAMLphp',
 ];
+
+include 'acdn_config.php';

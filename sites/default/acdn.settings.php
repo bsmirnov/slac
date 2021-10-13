@@ -32,5 +32,6 @@ if (in_array($_ENV['PANTHEON_ENVIRONMENT'], $environments) && (isset($_SERVER['H
   $base_url = "https://" . $_SERVER['HTTP_ORIG_HOST'];
   if (isset($_SERVER['HTTP_X_MASKED_PATH'])) {
     $base_url = $base_url . $_SERVER['HTTP_X_MASKED_PATH'];
+    $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_ORIG_HOST'] . $_SERVER['HTTP_X_MASKED_PATH'];
   }
 }
