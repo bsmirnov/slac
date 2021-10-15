@@ -28,9 +28,15 @@ $environments = array(
 $varyString = implode(', ', $varyHeaders);
 header("Vary: ${varyString}", FALSE);
 
-if (in_array($_ENV['PANTHEON_ENVIRONMENT'], $environments) && (isset($_SERVER['HTTP_ORIG_HOST']))) {
+if (isset($_ENV['PANTHEON_ENVIRONMENT']) && php_sapi_name() != 'cli') {
+  if (isset($_SERVER['HTTP_ORIG_HOST'])) {
+    $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_ORIG_HOST'];
+  }
+
+  // Now also handle subpath stuff.
   if (isset($_SERVER['HTTP_X_MASKED_PATH'])) {
-    $base_url = "https://" . $_SERVER['HTTP_ORIG_HOST'] . $_SERVER['HTTP_X_MASKED_PATH'];
+    $base_url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['HTTP_X_MASKED_PATH'];
+    $base_path = $_SERVER['HTTP_X_MASKED_PATH'];
     $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_ORIG_HOST'] . $_SERVER['HTTP_X_MASKED_PATH'];
     $cookie_domain = $_SERVER['HTTP_ORIG_HOST'];
   }
