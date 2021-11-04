@@ -53,7 +53,11 @@ if (isset($item->rendered_fields['field_slac_event_link'])) {
   $content = l($content, $item->rendered_fields['field_slac_event_link'], array('html' => TRUE));
 }
 elseif (isset($item->rendered_fields['path'])) {
-  $content = l($content, trim($item->rendered_fields['path'], '/'), array('html' => TRUE));
+  if (isset($_SERVER['HTTP_ORIG_HOST']) && isset($_SERVER['HTTP_X_MASKED_PATH'])) {
+    $content = l($content, trim($item->rendered_fields['path'], $_SERVER['HTTP_X_MASKED_PATH']), array('html' => TRUE));
+  } else {
+    $content = l($content, trim($item->rendered_fields['path'], '/'), array('html' => TRUE));
+  }
 }
 
 ?>
