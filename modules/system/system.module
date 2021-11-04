@@ -298,6 +298,7 @@ function system_element_info() {
     '#theme_wrappers' => array('form'),
   );
 
+  // ACDN form action path fix
   if (isset($_ENV['PANTHEON_ENVIRONMENT']) && isset($_SERVER['HTTP_X_MASKED_PATH'])) {
     $types['form']['#action'] = rtrim(base_path(), '/') . request_uri();
   }
