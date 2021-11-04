@@ -270,13 +270,13 @@
       $('.pane-search-block', context).once('show-slac-logout', function () {
         var request = new XMLHttpRequest();
         request.el = this
-        request.open('GET', '/sso/status', true);
+        request.open('GET', Drupal.settings.basePath + 'sso/status', true);
         request.onload = function () {
           // Begin accessing JSON data here
           var status = JSON.parse(this.response);
           // Add the logout link.
           if (status) {
-            $(this.el).after('<div class="pane-system-user-menu"><ul><li><a href="/sso/logout" rel="nofollow" class="slac-logout-link">SLAC Log Out</a></li></ul></div>');
+            $(this.el).after('<div class="pane-system-user-menu"><ul><li><a href="'+ Drupal.settings.basePath +'sso/logout" rel="nofollow" class="slac-logout-link">SLAC Log Out</a></li></ul></div>');
           }
         }
 
