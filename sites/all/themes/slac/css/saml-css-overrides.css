@@ -1,0 +1,27 @@
+@media (max-width: 689px) {
+  html .user-icons a {
+    text-indent: 0;
+    overflow: visible;
+    width: auto;
+    font-size: 14px;
+    font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif;
+  }
+
+  html .header-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  html .logo-container,
+  html .user-search {
+    width: auto;
+    margin-right: auto;
+  }
+
+  html .user-search {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
