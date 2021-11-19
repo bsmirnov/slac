@@ -1,5 +1,6 @@
 @media (max-width: 689px) {
-  html .user-icons a {
+  html .user-icons a,
+  html .pane-system-user-menu a {
     text-indent: 0;
     overflow: visible;
     width: auto;
@@ -24,5 +25,10 @@
     margin-left: auto;
     margin-right: 0;
     min-width: 150px;
+  }
+
+  html .pane-system-user-menu {
+    display: block !important;
+    order: 1;
   }
 }
