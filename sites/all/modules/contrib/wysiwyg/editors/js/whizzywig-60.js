@@ -21,55 +21,56 @@ Drupal.wysiwyg.editor.attach.whizzywig = function(context, params, settings) {
     window.buttonPath = 'textbuttons';
   }
   // Whizzywig needs to have the width set 'inline'.
-  var $field = $('#' + params.field);
+  var $field = this.$field;
   this.originalStyle = $field.attr('style');
   $field.css('width', $field.width() + 'px');
+  // Whizzywig uses defaultValue instead of value.
+  $field.attr('defaultValue', $field.val());
 
   // Attach editor.
   makeWhizzyWig(params.field, (settings.buttons ? settings.buttons : 'all'));
-  // Whizzywig fails to detect and set initial textarea contents.
-  $('#whizzy' + params.field).contents().find('body').html(tidyD($field.val()));
+  var wysiwygInstance = this;
+  setTimeout(function () {
+    // Whizzywig moves the field around, breaking event handlers and references.
+    $field = $('#' + params.field);
+    wysiwygInstance.$field = $field;
+    wysiwygInstance.startWatching($field, {textarea: $field}, function (context) {
+      return context.textarea.css('display') === 'block';
+    });
+  }, 100);
+  this.startWatching($('#whizzy' + params.field).contents().find('body'), {textarea: $field}, function (context) {
+    return context.textarea.css('display') !== 'block';
+  });
 };
 
 /**
- * Detach a single or all editors.
+ * Detach a single editor instance.
  */
 Drupal.wysiwyg.editor.detach.whizzywig = function (context, params, trigger) {
-  var instance = this;
-  var detach = function (index) {
-    var id = whizzies[index], $field = $('#' + id);
+  for (var index = 0; index < whizzies.length; index++) {
+    if (whizzies[index] !== this.field) {
+      continue;
+    }
+    var $field = this.$field;
 
     // Save contents of editor back into textarea.
-    $field.val(instance.getContent());
+    $field.val(this.getContent());
     // If the editor is just being serialized (not detached), our work is done.
     if (trigger == 'serialize') {
       return;
     }
     // Move original textarea back to its previous location.
-    var $container = $('#CONTAINER' + id);
+    var $container = $('#CONTAINER' + this.field);
     $field.insertBefore($container);
     // Remove editor instance.
     $container.remove();
     whizzies.splice(index, 1);
 
     // Restore original textarea styling.
-    if ('originalStyle' in instance) {
-      $field.removeAttr('style').attr('style', instance.originalStyle);
+    if ('originalStyle' in this) {
+      $field.removeAttr('style').attr('style', this.originalStyle);
     }
-  }
-
-  if (typeof params != 'undefined') {
-    for (var i = 0; i < whizzies.length; i++) {
-      if (whizzies[i] == params.field) {
-        detach(i);
-        break;
-      }
-    }
-  }
-  else {
-    while (whizzies.length > 0) {
-      detach(0);
-    }
+    break;
   }
 };
 
@@ -83,6 +84,7 @@ Drupal.wysiwyg.editor.instance.whizzywig = {
   },
 
   setContent: function (content) {
+    var $field = $('#' + this.field);
     // Whizzywig shows the original textarea in source mode.
     if ($field.css('display') == 'block') {
       $('#' + this.field).val(content);

@@ -12,7 +12,7 @@ var instanceMap;
  * Initialize the editor library.
  *
  * This method is called once the first time a library is needed. If new
- * WYSIWYG fieldsare added later, update() will be called instead.
+ * WYSIWYG fields are added later, update() will be called instead.
  *
  * @param settings
  *   An object containing editor settings for each input format.
@@ -21,6 +21,12 @@ var instanceMap;
  */
 Drupal.wysiwyg.editor.init.ckeditor = function(settings, pluginInfo) {
   instanceMap = {};
+
+  // Manually set the cache-busting string to the same value as Drupal.
+  if (Drupal.settings.wysiwyg.ckeditor.hasOwnProperty('timestamp')) {
+    CKEDITOR.timestamp = Drupal.settings.wysiwyg.ckeditor.timestamp;
+  }
+
   // Nothing to do here other than register new plugins etc.
   Drupal.wysiwyg.editor.update.ckeditor(settings, pluginInfo);
 };
@@ -66,11 +72,46 @@ Drupal.wysiwyg.editor.attach.ckeditor = function(context, params, settings) {
   // Apply editor instance settings.
   CKEDITOR.config.customConfig = '';
 
-  var $drupalToolbars = $('#toolbar, #admin-menu', Drupal.overlayChild ? window.parent.document : document);
   if (!settings.height) {
     settings.height = $('#' + params.field).height();
   }
+  // Handler for any change-related event.
+  function changed(ev) {
+    instanceMap[ev.editor.name].contentsChanged();
+  }
   settings.on = {
+    // Versions 4.x has a change event, 3.x does not.
+    change: function (ev) {
+      changed(ev);
+    },
+    contentDom: function (ev) {
+      var version_parts = CKEDITOR.version.split('.');
+      if (version_parts[0] === '3' || (version_parts[0] === '4' && parseInt(version_parts[1], 10) < 2)) {
+        ev.editor.on('key', function (ev) {
+          // Do not capture modifiers.
+          if (ev.data.ctrlKey || ev.data.metaKey)
+            return;
+
+          var keyCode = ev.data.keyCode;
+          // Filter out movement keys and related.
+          if (keyCode == 8 || keyCode == 13 || keyCode == 32
+            || (keyCode >= 46 && keyCode <= 90) || (keyCode >= 96 && keyCode <= 111)
+            || (keyCode >= 186 && keyCode <= 222) || keyCode == 229) {
+            changed(ev);
+          }
+        });
+        ev.editor.on('paste', changed);
+        ev.editor.on('saveSnapshot', function (ev) {
+          if (instanceMap[ev.editor.name].firstSaveSnapshot) {
+            // The first save snapshot event is triggered when the editor is
+            // focused and before anything has changed.
+            instanceMap[ev.editor.name].firstSaveSnapshot = false;
+            return;
+          }
+          changed(ev);
+        });
+      }
+    },
     instanceReady: function(ev) {
       var editor = ev.editor;
       // Get a list of block, list and table tags from CKEditor's XHTML DTD.
@@ -170,10 +211,10 @@ Drupal.wysiwyg.editor.attach.ckeditor = function(context, params, settings) {
         return;
       }
       if (ev.data.command.state == CKEDITOR.TRISTATE_ON) {
-        $drupalToolbars.hide();
+        Drupal.wysiwyg.utilities.onFullscreenEnter();
       }
       else {
-        $drupalToolbars.show();
+        Drupal.wysiwyg.utilities.onFullscreenExit();
       }
     },
 
@@ -188,33 +229,25 @@ Drupal.wysiwyg.editor.attach.ckeditor = function(context, params, settings) {
 };
 
 /**
- * Detach a single or all editors.
- *
- * @todo 3.x: editor.prototype.getInstances() should always return an array
- *   containing all instances or the passed in params.field instance, but
- *   always return an array to simplify all detach functions.
+ * Detach a single editor instance.
  */
 Drupal.wysiwyg.editor.detach.ckeditor = function (context, params, trigger) {
   var method = (trigger == 'serialize') ? 'updateElement' : 'destroy';
-  if (typeof params != 'undefined') {
-    var instance = CKEDITOR.instances[params.field];
-    if (instance) {
-      instance[method]();
-    }
+  var instance = CKEDITOR.instances[params.field];
+  if (!instance) {
+    return;
   }
-  else {
-    for (var instanceName in CKEDITOR.instances) {
-      if (CKEDITOR.instances.hasOwnProperty(instanceName)) {
-        CKEDITOR.instances[instanceName][method]();
-      }
-    }
-  }
+  instance[method]();
 };
 
 Drupal.wysiwyg.editor.instance.ckeditor = {
+
+  // Flag indicating if the first save snapshot event has fired.
+  firstSaveSnapshot: true,
+
   addPlugin: function (pluginName, pluginSettings) {
     CKEDITOR.plugins.add(pluginName, {
-      // Wrap Drupal plugin in a proxy pluygin.
+      // Wrap Drupal plugin in a proxy plugin.
       init: function(editor) {
         if (pluginSettings.css) {
           editor.on('mode', function(ev) {
@@ -236,7 +269,18 @@ Drupal.wysiwyg.editor.instance.ckeditor = {
                   data.node = data.node.$;
                 }
                 if (selection.getType() == CKEDITOR.SELECTION_TEXT) {
-                  data.content = selection.getSelectedText();
+                  if (selection.getSelectedText) {
+                    data.content = selection.getSelectedText();
+                  }
+                  else {
+                    // Pre v3.6.1.
+                    if (CKEDITOR.env.ie) {
+                      data.content = selection.getNative().createRange().text;
+                    }
+                    else {
+                      data.content = selection.getNative().toString();
+                    }
+                  }
                 }
                 else if (data.node) {
                   // content is supposed to contain the "outerHTML".
@@ -265,7 +309,7 @@ Drupal.wysiwyg.editor.instance.ckeditor = {
 
   insert: function(content) {
     content = this.prepareContent(content);
-    if (CKEDITOR.env.webkit || CKEDITOR.env.chrome || CKEDITOR.env.opera || CKEDITOR.env.safari) {
+    if (CKEDITOR.version.split('.')[0] === '3' && (CKEDITOR.env.webkit || CKEDITOR.env.chrome || CKEDITOR.env.opera || CKEDITOR.env.safari)) {
       // Works around a WebKit bug which removes wrapper elements.
       // @see https://drupal.org/node/1927968
       var tmp = new CKEDITOR.dom.element('div'), children, skip = 0, item;
@@ -286,6 +330,8 @@ Drupal.wysiwyg.editor.instance.ckeditor = {
             CKEDITOR.instances[this.field].insertHtml(item.getOuterHtml());
             skip++;
             break;
+          default:
+            skip++;
         }
       }
     }

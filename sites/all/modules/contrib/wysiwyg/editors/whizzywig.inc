@@ -11,14 +11,17 @@
 function wysiwyg_whizzywig_editor() {
   $editor['whizzywig'] = array(
     'title' => 'Whizzywig',
-    'vendor url' => 'http://www.unverse.net',
-    'download url' => 'http://www.unverse.net/whizzywig-download.html',
+    'vendor url' => 'https://github.com/jgmdev/whizzywig',
+    'download url' => 'https://github.com/jgmdev/whizzywig/releases',
     'libraries' => array(
       '' => array(
         'title' => 'Default',
         'files' => array('whizzywig.js'),
       ),
     ),
+    'verified version range' => array('55', '63'),
+    'deprecation message' => t('@editor is no longer being developed and support will be dropped by Wysiwyg module after May 2022.', array('@editor' => 'Whizzywig')),
+    'install note callback' => 'wysiwyg_deprecation_install_note',
     'version callback' => 'wysiwyg_whizzywig_version',
     'settings form callback' => 'wysiwyg_whizzywig_settings_form',
     'settings callback' => 'wysiwyg_whizzywig_settings',
@@ -127,7 +130,11 @@ function wysiwyg_whizzywig_settings($editor, $config, $theme) {
       }
     }
     elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
-      $settings['externalCSS'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => drupal_get_path('theme', variable_get('theme_default', NULL))));
+      $settings['externalCSS'] = strtr($config['css_path'], array(
+        '%b' => base_path(),
+        '%t' => drupal_get_path('theme', variable_get('theme_default', NULL)),
+        '%q' => variable_get('css_js_query_string', ''),
+      ));
     }
   }
 

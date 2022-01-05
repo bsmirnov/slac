@@ -7,15 +7,14 @@
  */
 Drupal.wysiwyg.editor.init.tinymce = function(settings, pluginInfo) {
   // Fix Drupal toolbar obscuring editor toolbar in fullscreen mode.
-  var $drupalToolbars = $('#toolbar, #admin-menu', Drupal.overlayChild ? window.parent.document : document);
   tinyMCE.onAddEditor.add(function (mgr, ed) {
     if (ed.id == 'mce_fullscreen') {
-      $drupalToolbars.hide();
+      Drupal.wysiwyg.utilities.onFullscreenEnter();
     }
   });
   tinyMCE.onRemoveEditor.add(function (mgr, ed) {
     if (ed.id == 'mce_fullscreen') {
-      $drupalToolbars.show();
+      Drupal.wysiwyg.utilities.onFullscreenExit();
     }
     else {
       // Free our reference to the private instance to not risk memory leaks.
@@ -50,7 +49,7 @@ Drupal.wysiwyg.editor.update.tinymce = function(settings, pluginInfo) {
 /**
  * Attach this editor to a target element.
  *
- * See Drupal.wysiwyg.editor.attach.none() for a full desciption of this hook.
+ * See Drupal.wysiwyg.editor.attach.none() for a full description of this hook.
  */
 Drupal.wysiwyg.editor.attach.tinymce = function(context, params, settings) {
   // Configure editor settings for this input format.
@@ -70,6 +69,9 @@ Drupal.wysiwyg.editor.attach.tinymce = function(context, params, settings) {
     });
     $('#' + ed.editorContainer + ' table.mceLayout td.mceToolbar').append($toolbar);
     $('#' + ed.editorContainer + ' table.mceToolbar').remove();
+    ed.onChange.add(function (ed) {
+      ed._drupalWysiwygInstance.contentsChanged();
+    });
   });
 
   // Remove TinyMCE's internal mceItem class, which was incorrectly added to
@@ -94,29 +96,19 @@ Drupal.wysiwyg.editor.attach.tinymce = function(context, params, settings) {
 };
 
 /**
- * Detach a single or all editors.
+ * Detach a single editor instance.
  *
- * See Drupal.wysiwyg.editor.detach.none() for a full desciption of this hook.
+ * See Drupal.wysiwyg.editor.detach.none() for a full description of this hook.
  */
 Drupal.wysiwyg.editor.detach.tinymce = function (context, params, trigger) {
-  if (typeof params != 'undefined') {
-    var instance = tinyMCE.get(params.field);
-    if (instance) {
-      instance.save();
-      if (trigger != 'serialize') {
-        instance.remove();
-      }
-    }
+  var instance = tinyMCE.get(params.field);
+  if (!instance) {
+    return;
   }
-  else {
-    // Save contents of all editors back into textareas.
-    tinyMCE.triggerSave();
-    if (trigger != 'serialize') {
-      // Remove all editor instances.
-      for (var instance in tinyMCE.editors) {
-        tinyMCE.editors[instance].remove();
-      }
-    }
+  instance.save();
+  if (trigger !== 'serialize') {
+    // The onRemove event fires before this returns.
+    instance.remove();
   }
 };
 
@@ -125,7 +117,7 @@ Drupal.wysiwyg.editor.instance.tinymce = {
     if (typeof Drupal.wysiwyg.plugins[plugin] != 'object') {
       return;
     }
-    tinymce.create('tinymce.plugins.' + plugin, {
+    tinymce.create('tinymce.plugins.drupal_' + plugin, {
       /**
        * Initialize the plugin, executed after the plugin has been created.
        *
@@ -136,7 +128,7 @@ Drupal.wysiwyg.editor.instance.tinymce = {
        */
       init: function(ed, url) {
         // Register an editor command for this plugin, invoked by the plugin's button.
-        ed.addCommand(plugin, function() {
+        ed.addCommand('drupal_' + plugin, function() {
           if (typeof Drupal.wysiwyg.plugins[plugin].invoke == 'function') {
             var data = { format: 'html', node: ed.selection.getNode(), content: ed.selection.getContent() };
             // TinyMCE creates a completely new instance for fullscreen mode.
@@ -146,9 +138,9 @@ Drupal.wysiwyg.editor.instance.tinymce = {
         });
 
         // Register the plugin button.
-        ed.addButton(plugin, {
+        ed.addButton('drupal_' + plugin, {
           title : pluginSettings.title,
-          cmd : plugin,
+          cmd : 'drupal_' + plugin,
           image : pluginSettings.icon
         });
 
@@ -164,7 +156,8 @@ Drupal.wysiwyg.editor.instance.tinymce = {
           var editorId = (ed.id == 'mce_fullscreen' ? ed.getParam('fullscreen_editor_id') : ed.id);
           if (typeof Drupal.wysiwyg.plugins[plugin].attach == 'function') {
             data.content = Drupal.wysiwyg.plugins[plugin].attach(data.content, pluginSettings, editorId);
-            data.content = ed._drupalWysiwygInstance.prepareContent(data.content);
+            // Get the instance from the id to work around fullscreen mode.
+            data.content = tinymce.get(editorId)._drupalWysiwygInstance.prepareContent(data.content);
           }
         });
 
@@ -180,7 +173,7 @@ Drupal.wysiwyg.editor.instance.tinymce = {
         // current selection.
         ed.onNodeChange.add(function(ed, command, node) {
           if (typeof Drupal.wysiwyg.plugins[plugin].isNode == 'function') {
-            command.setActive(plugin, Drupal.wysiwyg.plugins[plugin].isNode(node));
+            command.setActive('drupal_' + plugin, Drupal.wysiwyg.plugins[plugin].isNode(node));
           }
         });
       },
@@ -196,7 +189,7 @@ Drupal.wysiwyg.editor.instance.tinymce = {
     });
 
     // Register plugin.
-    tinymce.PluginManager.add(plugin, tinymce.plugins[plugin]);
+    tinymce.PluginManager.add('drupal_' + plugin, tinymce.plugins['drupal_' + plugin]);
   },
 
   openDialog: function(dialog, params) {
