@@ -19,6 +19,9 @@ function wysiwyg_nicedit_editor() {
         'files' => array('nicEdit.js'),
       ),
     ),
+    'verified version range' => array('0.9', '0.9'),
+    'deprecation message' => t('@editor is no longer being developed and support will be dropped by Wysiwyg module after May 2022.', array('@editor' => 'NicEdit')),
+    'install note callback' => 'wysiwyg_deprecation_install_note',
     'version callback' => 'wysiwyg_nicedit_version',
     'settings form callback' => 'wysiwyg_nicedit_settings_form',
     'settings callback' => 'wysiwyg_nicedit_settings',
@@ -97,7 +100,11 @@ function wysiwyg_nicedit_settings($editor, $config, $theme) {
       }
     }
     elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
-      $settings['externalCSS'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => drupal_get_path('theme', variable_get('theme_default', NULL))));
+      $settings['externalCSS'] = strtr($config['css_path'], array(
+        '%b' => base_path(),
+        '%t' => drupal_get_path('theme', variable_get('theme_default', NULL)),
+        '%q' => variable_get('css_js_query_string', ''),
+      ));
     }
   }
 
