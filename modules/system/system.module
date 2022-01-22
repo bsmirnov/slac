@@ -297,12 +297,6 @@ function system_element_info() {
     '#action' => request_uri(),
     '#theme_wrappers' => array('form'),
   );
-
-  // ACDN form action path fix
-  if (isset($_ENV['PANTHEON_ENVIRONMENT']) && isset($_SERVER['HTTP_X_MASKED_PATH'])) {
-    $types['form']['#action'] = rtrim(base_path(), '/') . request_uri();
-  }
-
   $types['page'] = array(
     '#show_messages' => TRUE,
     '#theme' => 'page',
@@ -1334,6 +1328,7 @@ function system_library() {
     'version' => '1.8.7',
     'js' => array(
       'misc/ui/jquery.ui.datepicker.min.js' => array(),
+      'misc/ui/jquery.ui.datepicker-1.13.0-backport.js' => array(),
     ),
     'css' => array(
       'misc/ui/jquery.ui.datepicker.css' => array(),
@@ -1347,7 +1342,8 @@ function system_library() {
     'website' => 'http://jqueryui.com/demos/dialog/',
     'version' => '1.8.7',
     'js' => array(
-      'misc/ui/jquery.ui.dialog.min.js' => array(),
+      'misc/ui/jquery.ui.dialog.min.js' =>  array(),
+      'misc/ui/jquery.ui.dialog-1.13.0-backport.js' => array(),
     ),
     'css' => array(
       'misc/ui/jquery.ui.dialog.css' => array(),
@@ -1403,6 +1399,7 @@ function system_library() {
     'version' => '1.8.7',
     'js' => array(
       'misc/ui/jquery.ui.position.min.js' => array(),
+      'misc/ui/jquery.ui.position-1.13.0-backport.js' => array(),
     ),
   );
   $libraries['ui.progressbar'] = array(
