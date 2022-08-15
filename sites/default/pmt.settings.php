@@ -81,7 +81,7 @@ if (defined('PANTHEON_ENVIRONMENT')) {
   $variables = array (
   'domains' =>
   array (
-    'canonical' => 'int.slac.stanford.edu/communications',
+    'canonical' => 'communications.int.slac.stanford.edu',
     'synonyms' =>
     array (
       0 => 'live-slac-internal-comms-d7.pantheonsite.io',
