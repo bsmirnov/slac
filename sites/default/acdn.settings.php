@@ -41,6 +41,6 @@ if (isset($_ENV['PANTHEON_ENVIRONMENT']) && php_sapi_name() != 'cli') {
 
     # set cookie path to the value of HTTP_X_MASKED_PATH to avoid collision if parent name uses the same cookie name
     $cookieParams = session_get_cookie_params(); 
-    session_set_cookie_params($cookieParams['lifetime'], $_SERVER['HTTP_X_MASK_PAST'], $cookieParams['domain'], $cookieParams['secure'], $cookieParams['httponly'], $cookieParams['samesite']);
+    session_set_cookie_params($cookieParams['lifetime'], $_SERVER['HTTP_X_MASKED_PATH'], $cookieParams['domain'], $cookieParams['secure'], $cookieParams['httponly'], $cookieParams['samesite']);
   }
 }
