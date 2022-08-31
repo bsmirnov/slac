@@ -88,6 +88,7 @@ if (defined('PANTHEON_ENVIRONMENT')) {
     ),
   ),
   'redis' => false,
+  'https' => true,
 );
 
 
