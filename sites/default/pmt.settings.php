@@ -3,8 +3,7 @@
 // Created at: 2021-06-15 15:37:11
 
 /**
- * This is the setting file to dynamically create base_url for ACDN
-originating requests.
+ * This is the setting file to dynamically create base_url for ACDN originating requests.
  */
 if (file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'acdn.settings.php')) {
   require_once __DIR__ . DIRECTORY_SEPARATOR . 'acdn.settings.php';
