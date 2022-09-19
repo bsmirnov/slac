@@ -59,7 +59,7 @@ if (php_sapi_name() != "cli") {
 /**
  * Redirect for subpath.
  */
-if (preg_match('/.*pantheonsite.io/', $_SERVER['HTTP_HOST']) === 1) {
+/*if (preg_match('/.*pantheonsite.io/', $_SERVER['HTTP_HOST']) === 1) {
   $redirect_path = "";
   if( strpos( $_SERVER['REQUEST_URI'], '/communications/' ) === 0){
     $redirect_path = 'https://' . $_SERVER['HTTP_HOST'] . str_replace('/communications/', '/', $_SERVER['REQUEST_URI']);
@@ -71,7 +71,7 @@ if (preg_match('/.*pantheonsite.io/', $_SERVER['HTTP_HOST']) === 1) {
       exit();
     }
   }
-}
+}*/
 
 /**
  * Pantheon-specific settings
