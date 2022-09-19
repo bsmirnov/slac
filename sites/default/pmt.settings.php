@@ -152,7 +152,7 @@ if (defined('PANTHEON_ENVIRONMENT')) {
     $conf['reroute_email_enable'] = 0;
 
     // Redirect to canonical domain
-    if (isset($variables)) {
+  /*  if (isset($variables)) {
       if (isset($variables['domains']['canonical'])) {
         if (!$cli) {
           $location = false;
@@ -186,7 +186,7 @@ if (defined('PANTHEON_ENVIRONMENT')) {
           }
         }
       }
-    }
+    }*/
   }
 
   foreach (array('dev', 'test', 'live') as $environment) {
