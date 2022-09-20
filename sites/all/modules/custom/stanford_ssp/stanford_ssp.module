@@ -236,7 +236,7 @@ function stanford_ssp_menu_site_status_alter(&$menu_site_status, $path) {
  * Redirect saml_login to sso/login.
  */
 function stanford_ssp_redirect() {
-  $dest = $_SERVER['HTTP_X_MASKED_PATH'] . drupal_get_destination();
+  $dest = drupal_get_destination();
   // If we don't unset the destination we get a redirect loop.
   unset($_GET['destination']);
   // Need to go to here to log in.
@@ -394,7 +394,7 @@ function stanford_ssp_page_build(array &$page) {
   // HTTP_REFERER as a feature. In short, it cannot really be trusted.
   if (user_is_anonymous() && isset($headers["status"]) && $headers["status"] == "403 Forbidden" && !preg_match('/login(-uat)?\.stanford\.edu/', $_SERVER['HTTP_REFERER'])) {
     if (variable_get("stanford_ssp_automagic_login", FALSE)) {
-      $dest = $_SERVER['HTTP_X_MASKED_PATH'] . drupal_get_destination();
+      $dest = drupal_get_destination();
 
       // If we don't unset the destination we get a redirect loop.
       unset($_GET['destination']);
