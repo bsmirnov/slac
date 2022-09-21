@@ -14,11 +14,7 @@ function stanford_ssp_boot() {
   // since the request will come across as saml unauthenticated. Ignore these
   // type of requests. See
   // https://pantheon.io/docs/caching-advanced-topics#file-suffixes-and-cookies
-  if (isset($_SERVER['HTTP_X_MASKED_PATH'])) {
-    $cp = $_SERVER['HTTP_X_MASKED_PATH'] . '/' . current_path();
-  } else {
-    $cp = current_path();
-  }
+  $cp = current_path();
   $ext = pathinfo($cp, PATHINFO_EXTENSION);
   $allow = array('png', 'gif', 'jpeg', 'jpg',
                  'ico', 'bmp', 'tif', 'tiff',
