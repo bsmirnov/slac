@@ -42,7 +42,7 @@ $config = [
         // The URL to the discovery service.
         // Can be NULL/unset, in which case a builtin discovery service will be used.
         'discoURL' => null,
-
+        'RelayState' => 'https://int.slac.stanford.edu/communications',
         /*
          * The attributes parameter must contain an array of desired attributes by the SP.
          * The attributes can be expressed as an array of names or as an associative array
@@ -63,6 +63,7 @@ $config = [
             'urn:oid:x.x.x.x',
         ],
         */
+
     ],
 
 
