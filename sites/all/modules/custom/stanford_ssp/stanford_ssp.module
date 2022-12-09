@@ -413,7 +413,8 @@ function stanford_ssp_page_build(array &$page) {
         $xbasepath = '';
       }
       // Need to go to here to log in.
-      drupal_goto("sso/login", array('query' => array('goto' => $xbasepath . $dest['destination'])));
+      // Comment out goto.
+      // drupal_goto("sso/login", array('query' => array('goto' => $xbasepath . "/" . $dest['destination'])));
     }
   }
 }
