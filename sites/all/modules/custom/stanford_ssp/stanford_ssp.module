@@ -208,17 +208,18 @@ function stanford_ssp_access_login_page() {
     return TRUE;
   }
 
+  // Comment out goto
   // If the user is already logged in and a goto is set then do the redirect.
-  if (isset($_GET['goto'])) {
-    $goto = check_plain($_GET['goto']);
-    drupal_goto($goto);
-  }
+  // if (isset($_GET['goto'])) {
+  //   $goto = check_plain($_GET['goto']);
+  //   drupal_goto($goto);
+  // }
 
-  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
-    $goto = check_plain($_COOKIE['stanford_ssp_goto']);
-    setcookie("stanford_ssp_goto", 'FALSE', -1);
-    drupal_goto($goto);
-  }
+  // if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+  //   $goto = check_plain($_COOKIE['stanford_ssp_goto']);
+  //   setcookie("stanford_ssp_goto", 'FALSE', -1);
+  //   drupal_goto($goto);
+  // }
 }
 
 /**
@@ -240,7 +241,9 @@ function stanford_ssp_redirect() {
   // If we don't unset the destination we get a redirect loop.
   unset($_GET['destination']);
   // Need to go to here to log in.
-  drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])), '301');
+
+  // Comment out goto.
+  // drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])), '301');
 }
 
 /**
@@ -269,19 +272,22 @@ function stanford_ssp_user_login() {
 
   // If the force redirect option has not been set check for the `goto` url
   // parameter.
-  if (!$redir && isset($_GET['goto'])) {
-    $goto = check_plain($_GET['goto']);
-    $redir = $goto;
-  }
 
-  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
-    $redir = check_plain($_COOKIE['stanford_ssp_goto']);
-    setcookie("stanford_ssp_goto", 'FALSE', -1);
-  }
+  // Comment out goto.
+  // if (!$redir && isset($_GET['goto'])) {
+  //   $goto = check_plain($_GET['goto']);
+  //   $redir = $goto;
+  // }
 
-  if (!empty($redir)) {
-    drupal_goto($redir);
-  }
+  // Comment out goto.
+  // if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+  //   $redir = check_plain($_COOKIE['stanford_ssp_goto']);
+  //   setcookie("stanford_ssp_goto", 'FALSE', -1);
+  // }
+
+  // if (!empty($redir)) {
+  //   drupal_goto($redir);
+  // }
 
 }
 
@@ -396,11 +402,18 @@ function stanford_ssp_page_build(array &$page) {
     if (variable_get("stanford_ssp_automagic_login", FALSE)) {
       $dest = drupal_get_destination();
 
+
       // If we don't unset the destination we get a redirect loop.
       unset($_GET['destination']);
 
+      if(isset($_SERVER['HTTP_X_MASKED_PATH']) && $_SERVER['HTTP_X_MASKED_PATH'] !='') {
+        $xbasepath = $_SERVER['HTTP_X_MASKED_PATH'];
+      }
+      else {
+        $xbasepath = '';
+      }
       // Need to go to here to log in.
-      drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])));
+      drupal_goto("sso/login", array('query' => array('goto' => $xbasepath . $dest['destination'])));
     }
   }
 }
