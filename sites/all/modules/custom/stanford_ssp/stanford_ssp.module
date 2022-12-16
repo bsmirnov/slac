@@ -4,6 +4,26 @@
  * Code for the Stanford SimpleSAML PHP module.
  */
 
+ /**
+  * Utility function to prepend masked path.
+  */
+
+function stanford_ssp_xbase() {
+
+  $xbase = "";
+
+  // $_SERVER['HTTP_X_MASKED_PATH'] = '/communications';
+  // $_SERVER['HTTP_X_MASKED_HOST'] = 'live-web-communications-d7.agcdn-pantheon.slac.stanford.edu';
+  // $_SERVER['HTTP_X_HOST'] = 'int.slac.stanford.edu';
+  //$xbase = 'asdas';
+  //Check if we are on the masked path.
+  if(isset($_SERVER['HTTP_X_MASKED_PATH'])) {
+    $xbase = $_SERVER['HTTP_X_MASKED_PATH'] . "/";
+  }
+
+  return $xbase;
+}
+
 /**
  * Implements hook_boot().
  */
@@ -43,6 +63,8 @@ function stanford_ssp_boot() {
           }
         }
 
+        $xbase = stanford_ssp_xbase();
+
         if (empty($saml['attributes'])) {
           // The saml session is not valid. Log the user out of Drupal
           // if needed.
@@ -50,7 +72,7 @@ function stanford_ssp_boot() {
             session_destroy();
           }
           if ($cp != 'sso/login') {
-          #  drupal_goto("sso/login", array('query' => array('goto' => $cp)), '302');
+            drupal_goto($xbase . "sso/login", array('query' => array('goto' => $cp)), '302');
           }
         }
       }
@@ -203,6 +225,8 @@ function stanford_ssp_permission() {
  */
 function stanford_ssp_access_login_page() {
 
+  $xbase = stanford_ssp_xbase();
+
   // If user is anonymous then go through the log-in process.
   if (user_is_anonymous()) {
     return TRUE;
@@ -210,16 +234,16 @@ function stanford_ssp_access_login_page() {
 
   // Comment out goto
   // If the user is already logged in and a goto is set then do the redirect.
-  // if (isset($_GET['goto'])) {
-  //   $goto = check_plain($_GET['goto']);
-  //   drupal_goto($goto);
-  // }
+  if (isset($_GET['goto'])) {
+    $goto = check_plain($_GET['goto']);
+    drupal_goto($xbase . $goto);
+  }
 
-  // if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
-  //   $goto = check_plain($_COOKIE['stanford_ssp_goto']);
-  //   setcookie("stanford_ssp_goto", 'FALSE', -1);
-  //   drupal_goto($goto);
-  // }
+  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+    $goto = check_plain($_COOKIE['stanford_ssp_goto']);
+    setcookie("stanford_ssp_goto", 'FALSE', -1);
+    drupal_goto($xbase . $goto);
+  }
 }
 
 /**
@@ -228,7 +252,8 @@ function stanford_ssp_access_login_page() {
  * Allow access to log in when site is in maintenance mode.
  */
 function stanford_ssp_menu_site_status_alter(&$menu_site_status, $path) {
-  if ($menu_site_status == MENU_SITE_OFFLINE && $path == 'sso/login') {
+
+  if ($menu_site_status == MENU_SITE_OFFLINE && $path == $xbase . 'sso/login') {
     $menu_site_status = MENU_SITE_ONLINE;
   }
 }
@@ -237,13 +262,16 @@ function stanford_ssp_menu_site_status_alter(&$menu_site_status, $path) {
  * Redirect saml_login to sso/login.
  */
 function stanford_ssp_redirect() {
+
+  $xbase = stanford_ssp_xbase();
+
   $dest = drupal_get_destination();
   // If we don't unset the destination we get a redirect loop.
   unset($_GET['destination']);
   // Need to go to here to log in.
 
   // Comment out goto.
-  // drupal_goto("sso/login", array('query' => array('goto' => $dest['destination'])), '301');
+  drupal_goto($xbase . "sso/login", array('query' => array('goto' => $xbase . $dest['destination'])), '301');
 }
 
 /**
@@ -267,6 +295,8 @@ function stanford_ssp_init() {
  */
 function stanford_ssp_user_login() {
 
+  $xbase = stanford_ssp_xbase();
+
   // Redirect the user if setting available.
   $redir = variable_get("stanford_ssp_redirect_on_login", FALSE);
 
@@ -274,20 +304,20 @@ function stanford_ssp_user_login() {
   // parameter.
 
   // Comment out goto.
-  // if (!$redir && isset($_GET['goto'])) {
-  //   $goto = check_plain($_GET['goto']);
-  //   $redir = $goto;
-  // }
+  if (!$redir && isset($_GET['goto'])) {
+    $goto = check_plain($_GET['goto']);
+    $redir = $xbase . $goto;
+  }
 
   // Comment out goto.
-  // if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
-  //   $redir = check_plain($_COOKIE['stanford_ssp_goto']);
-  //   setcookie("stanford_ssp_goto", 'FALSE', -1);
-  // }
+  if (isset($_COOKIE['stanford_ssp_goto']) && $_COOKIE['stanford_ssp_goto'] !== 'FALSE') {
+    $redir = check_plain($_COOKIE['stanford_ssp_goto']);
+    setcookie("stanford_ssp_goto", 'FALSE', -1);
+  }
 
-  // if (!empty($redir)) {
-  //   drupal_goto($redir);
-  // }
+  if (!empty($redir)) {
+    drupal_goto($redir);
+  }
 
 }
 
@@ -319,6 +349,9 @@ function stanford_ssp_sso_auth() {
  * Logs out a user from Slac authentication.
  */
 function stanford_ssp_sso_auth_logout() {
+
+  $xbase = stanford_ssp_xbase();
+
   $saml = stanford_simplesamlphp_auth_get_saml_info();
 
   if (!empty($saml['attributes'])) {
@@ -327,7 +360,7 @@ function stanford_ssp_sso_auth_logout() {
     // Logout of Slac.
     return $saml['source']->logout();
   }
-  // drupal_goto('/user/login');
+  drupal_goto($xbase . '/user/login');
 }
 
 /**
@@ -389,6 +422,8 @@ function stanford_ssp_page_build(array &$page) {
   // header response on the page build.
   $headers = drupal_get_http_header();
 
+  $xbase = stanford_ssp_xbase();
+
   // In order to prevent the redirect loop, we check to see if the referrer was login.stanford.edu.
   // Not all servers support HTTP_REFERER but the ones we use do. I suspect if we wanted to support
   // more servers we would have to expand on this check but hopefully, this is good enough.
@@ -402,19 +437,12 @@ function stanford_ssp_page_build(array &$page) {
     if (variable_get("stanford_ssp_automagic_login", FALSE)) {
       $dest = drupal_get_destination();
 
-
       // If we don't unset the destination we get a redirect loop.
       unset($_GET['destination']);
 
-      if(isset($_SERVER['HTTP_X_MASKED_PATH']) && $_SERVER['HTTP_X_MASKED_PATH'] !='') {
-        $xbasepath = $_SERVER['HTTP_X_MASKED_PATH'];
-      }
-      else {
-        $xbasepath = '';
-      }
       // Need to go to here to log in.
       // Comment out goto.
-      // drupal_goto("sso/login", array('query' => array('goto' => $xbasepath . "/" . $dest['destination'])));
+      drupal_goto($xbase . "sso/login", array('query' => array('goto' => $xbase . $dest['destination'])));
     }
   }
 }
