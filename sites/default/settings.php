@@ -39,3 +39,14 @@ $conf['cache_backends'][] = 'sites/all/modules/contrib/d8cache/d8cache-ac.cache.
 $conf['cache_class_cache_views_data'] = 'D8CacheAttachmentsCollector';
 $conf['cache_class_cache_block'] = 'D8CacheAttachmentsCollector';
 $conf['cache_class_cache_page'] = 'D8Cache';
+
+// Automatically generated include for settings managed by ddev.
+$ddev_settings = dirname(__FILE__) . '/settings.ddev.php';
+if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
+  require $ddev_settings;
+}
+
+$pantheon_rewrite_file = __DIR__ .  '/pantheon_rewrites.php';
+if(file_exists($pantheon_rewrite_file)) {
+  include 'pantheon_rewrites.php';
+}
