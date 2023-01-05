@@ -72,7 +72,7 @@ function stanford_ssp_boot() {
             session_destroy();
           }
           if ($cp != 'sso/login') {
-            drupal_goto($xbase . "sso/login");
+            drupal_goto($xbase . "sso/login", array('query' => array('goto' => $cp)), '302');
           }
         }
       }
