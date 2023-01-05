@@ -46,7 +46,7 @@ if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
   require $ddev_settings;
 }
 
-$pantheon_rewrite_file = __DIR__ .  '/pantheon_rewrites.php';
-if(file_exists($pantheon_rewrite_file)) {
-  include 'pantheon_rewrites.php';
-}
+// $pantheon_rewrite_file = __DIR__ .  '/pantheon_rewrites.php';
+// if(file_exists($pantheon_rewrite_file)) {
+//   include 'pantheon_rewrites.php';
+// }
