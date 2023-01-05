@@ -54,18 +54,9 @@
  *
  */
 
-$xbase = '';
 
-if(isset($_SERVER['HTTP_X_MASKED_PATH'])) {
-  $xbase = $_SERVER['HTTP_X_MASKED_PATH'] . "/";
-}
 
-// Grab request uri
-$uri = $_SERVER['REQUEST_URI'];
-// Make regex with xbase
-$exp = '#(\b'. preg_quote($xbase) . ')\b#i';
-// Remove duplicates from string
-$result_text = preg_replace($exp, "", $uri);
+
 
 
 
@@ -78,8 +69,27 @@ $redirects = [
   //'/communications/communications' => '/communications',  // You can copy/paste and duplicate this line for more redirects
 ];
 
-//Dynamically add it as redirect.
-$redirects[$uri] = $result_text;
+
+// If we are on the masked domain.
+if(isset($_SERVER['HTTP_X_MASKED_PATH'])) {
+
+  $xbase = '';
+
+  $xbase = $_SERVER['HTTP_X_MASKED_PATH'] . "/";
+
+  // Grab request uri
+  $uri = $_SERVER['REQUEST_URI'];
+  // Make regex with xbase to remove duplicates
+  $exp = '#(\b'. preg_quote($xbase) . ')\b#i';
+  // Remove duplicates from string
+  $result_text = preg_replace($exp, "", $uri);
+
+  //Dynamically add it as redirect.
+  $redirects[$uri] = $result_text;
+
+}
+
+
 
 /**
  * Redirect Loop code. DO NOT EDIT UNLESS YOU KNOW WHAT YOU ARE DOING!
