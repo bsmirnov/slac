@@ -40,7 +40,7 @@ function stanford_simplesamlphp_auth_loginpage() {
     // the endpoint again to log the user in with Drupal. After we log the user
     // in we can redirect them to the correct destination.
     if (isset($_GET['goto'])) {
-      setcookie("stanford_ssp_goto", check_plain($_GET['goto']), time() + 120);  /* expire in 2 min */
+      setcookie("stanford_ssp_goto", check_plain("/communications/" . $_GET['goto']), time() + 120);  /* expire in 2 min */
     }
     // Fire up a request to the IDP. This leaves Drupal and ends here.
     $saml['source']->requireAuth();
